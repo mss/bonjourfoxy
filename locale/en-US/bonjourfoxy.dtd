@@ -1,0 +1,4 @@
+<!ENTITY bonjourfoxy.title "Bonjour Services">
+<!ENTITY bonjourfoxy.label "Bonjour Services">
+<!ENTITY bonjourfoxyToolbar.label "Bonjour Service Button">
+<!ENTITY bonjourfoxyToolbar.tooltip "Toggle Bonjour Services Sidebar">

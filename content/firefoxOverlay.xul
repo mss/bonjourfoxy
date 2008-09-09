@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://bonjourfoxy/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd">
+<overlay id="bonjourfoxy-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="overlay.js"/>
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bonjourfoxy-strings" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
+  </stringbundleset>
+
+  <menupopup id="viewSidebarMenu">
+    <menuitem id="key_openEmptySidebar" label="&bonjourfoxy.label;" observes="viewBonjourServices"
+              oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
+  </menupopup>
+  
+  <toolbarpalette id="BrowserToolbarPalette">
+  <toolbarbutton id="bonjourfoxy-toolbar-button"
+    label="&bonjourfoxyToolbar.label;"
+    tooltiptext="&bonjourfoxyToolbar.tooltip;"
+    oncommand="bonjourfoxy.onToolbarButtonCommand()"
+    class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+  </toolbarpalette>
+
+  <broadcasterset id="mainBroadcasterSet"> 
+    <broadcaster id="viewBonjourServices"
+                 label="&bonjourfoxy.label;"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebarurl="chrome://bonjourfoxy/content/list.xul"
+                 sidebartitle="&bonjourfoxy.title;"
+                 oncommand="toggleSidebar('viewBonjourServices');" />
+  </broadcasterset>
+
+</overlay>

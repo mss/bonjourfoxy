@@ -1,0 +1,5 @@
+content	bonjourfoxy	content/
+locale	bonjourfoxy	en-US	locale/en-US/
+skin	bonjourfoxy	classic/1.0	skin/
+overlay	chrome://browser/content/browser.xul	chrome://bonjourfoxy/content/firefoxOverlay.xul
+style	chrome://global/content/customizeToolbar.xul	chrome://bonjourfoxy/skin/overlay.css

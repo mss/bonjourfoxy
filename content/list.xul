@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css" ?>
+
+
+<page id="sbBonjourServices" title="Bonjour Services"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload='updateServiceList()'
+        class="dialog">
+
+<script>
+<![CDATA[
+
+function updateServiceList()    {
+    // the extension's id from install.rdf
+    var MY_ID = "bonjourfoxy@bonjourfoxy.sf.net";
+    var em = Components.classes["@mozilla.org/extensions/manager;1"].
+             getService(Components.interfaces.nsIExtensionManager);
+    var file = em.getInstallLocation(MY_ID).getItemFile(MY_ID, "install.rdf");
+    // returns nsIFile for the extension's install.rdf
+    
+    var binFile = (file.path).toString();
+    switch(navigator.platform)  {
+        case 'MacPPC':
+        case 'MacIntel':
+            binFile = binFile.replace('install.rdf','bin/bonjour2content-json-osx');
+        break;
+        case 'Win32':
+            binFile = binFile.replace('install.rdf','bin/bonjour2content-json.exe');
+        break;
+        default:
+            binFile = binFile.replace('install.rdf','bin/bonjour2content-json-bin');
+    }
+    
+    var jsonFile = (file.path).toString();
+    jsonFile = jsonFile.replace('install.rdf','content/services.json');
+
+    if (navigator.platform=='Win32')    {
+        jsonFile = jsonFile.replace("/","\\");
+        binFile = binFile.replace("/","\\");
+    }
+    
+    // create an nsILocalFile for the executable
+    var file = Components.classes["@mozilla.org/file/local;1"]
+                         .createInstance(Components.interfaces.nsILocalFile);
+    file.initWithPath(binFile);
+    
+    // create an nsIProcess
+    var process = Components.classes["@mozilla.org/process/util;1"]
+                            .createInstance(Components.interfaces.nsIProcess);
+    process.init(file);
+    
+    // Run the process.
+    // If first param is true, calling thread will be blocked until
+    // called process terminates.
+    // Second and third params are used to pass command-line arguments
+    // to the process.
+    var args = [''];
+    process.run(true, args, args.length);
+    
+    file = Components.classes["@mozilla.org/file/local;1"]
+                         .createInstance(Components.interfaces.nsILocalFile);
+    file.initWithPath(jsonFile);
+    
+    
+    var data = "";
+    var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                            .createInstance(Components.interfaces.nsIFileInputStream);
+    var sstream = Components.classes["@mozilla.org/scriptableinputstream;1"]
+                            .createInstance(Components.interfaces.nsIScriptableInputStream);
+    fstream.init(file, -1, 0, 0);
+    sstream.init(fstream); 
+    
+    var str = sstream.read(4096);
+    while (str.length > 0) {
+      data += str;
+      str = sstream.read(4096);
+    }
+    
+    sstream.close();
+    fstream.close();
+    
+    var obj = eval(data);
+    
+    var serviceList = document.getElementById('serviceListLB');
+    
+    for(var i=0;i<obj.length;i++)   {
+        var listitem = document.createElement('listitem');
+        listitem.setAttribute('label',obj[i].replyName);
+        listitem.setAttribute('onclick','window._content.location="' + obj[i].url + '"');        
+        serviceList.appendChild(listitem);
+    }
+}
+
+function onTreeClicked(event){
+  var tree = document.getElementById("serviceListT");
+  var tbo = tree.treeBoxObject;
+
+    try {
+      // get the row, col and child element at the point
+      var row = { }, col = { }, child = { };
+      tbo.getCellAt(event.clientX, event.clientY, row, col, child);
+    
+      var cellValue = tree.view.getCellValue(row.value, col.value);
+      
+      window._content.location=cellValue;
+    }
+    catch (e) {
+           return;
+    }
+}
+
+]]>
+</script>
+<vbox flex="1">
+    <listbox id="serviceListLB" rows="5" flex="1">
+    </listbox>
+</vbox>
+</page>
