@@ -1,6 +1,9 @@
+#!/usr/bin/env python
 import select
 import sys
 import re
+import string
+
 from os import sep
 from os import path
 import pybonjour
@@ -20,8 +23,11 @@ def urldecode(url):
 def resolve_callback(sdRef, flags, interfaceIndex, errorCode, fullname,
                      hosttarget, port, txtRecord):
     if errorCode == pybonjour.kDNSServiceErr_NoError:
-        jsStrings.append("{'replyName':'%s','regType':'%s','url':'http://%s:%i'}" \
-        % (urldecode(fullname).replace('.'+regtype,'').replace('.local.',''), regtype, hosttarget, port))
+        path = txtRecord[7:]
+        print u"{'replyName':'%s','regType':'%s','url':'http://%s:%i/%s'}" \
+        % (urldecode(fullname).replace('.'+regtype,'').replace('.local.',''), regtype, hosttarget, port, path)
+        jsStrings.append(u"{'replyName':'%s','regType':'%s','url':'http://%s:%i/%s'}" \
+        % (urldecode(fullname).replace('.'+regtype,'').replace('.local.',''), regtype, hosttarget, port, path))
         resolved.append(True)
 
 
@@ -64,8 +70,10 @@ try:
             pybonjour.DNSServiceProcessResult(browse_sdRef)
             self_path = path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
             output_path = "%s%s..%scontent%s" % (self_path, sep, sep, sep)
+            output = u'[%s]' % (u','.join(jsStrings))
+            output = output.encode("utf-8")
             fout = open("%sservices.json" % (output_path), "w")
-            fout.write("[%s]" % ",".join(jsStrings))
+            fout.write( output )
             fout.close()
     except KeyboardInterrupt:
         pass

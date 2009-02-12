@@ -14,7 +14,7 @@
 
 function updateServiceList()    {
     // the extension's id from install.rdf
-    var MY_ID = "bonjourfoxy@bonjourfoxy.sf.net";
+    var MY_ID = "bonjourfoxy@andrew.tj.id.au";
     var em = Components.classes["@mozilla.org/extensions/manager;1"].
              getService(Components.interfaces.nsIExtensionManager);
     var file = em.getInstallLocation(MY_ID).getItemFile(MY_ID, "install.rdf");

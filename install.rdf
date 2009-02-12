@@ -2,9 +2,9 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
-    <em:id>bonjourfoxy@bonjourfoxy.sf.net</em:id>
+    <em:id>bonjourfoxy@andrew.tj.id.au</em:id>
     <em:name>Bonjour Foxy</em:name>
-    <em:version>0.1</em:version>
+    <em:version>0.2.2</em:version>
     <em:creator>Andrew Tunnell-Jones</em:creator>
     <em:targetApplication>
       <Description>
