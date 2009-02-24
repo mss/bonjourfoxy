@@ -1,0 +1,15 @@
+#include "nsISupports.idl"
+#include "nsIArray.idl"
+#include "nsIMutableArray.idl"
+#include "dsdmanager.idl"
+
+[scriptable, uuid(2a4a57ac-0b06-4fdc-aa3a-f8e4e9195f50)]
+
+interface IDSDMANAGER : nsISupports
+{
+
+    void handleEvent(in AString from, in nsIArray data);
+    
+    readonly attribute PRBool acceptEvents;
+
+};

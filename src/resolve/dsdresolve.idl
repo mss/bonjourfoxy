@@ -1,0 +1,72 @@
+#include "nsISupports.idl"
+#include "nsITimer.idl"
+#include "nsIServiceManager.idl"
+
+[scriptable, uuid(0C8EA066-3BD8-4018-AAD7-FB32205DC4AC)]
+
+interface IDSDRESOLVE : nsISupports
+{
+	// Start resolving service name
+	
+	void start();
+	
+	// Stop looking for service name
+	
+	void stop();
+	
+	// Interface to search on
+	
+	attribute long interfaceIndex;
+
+	// Service name to look for
+	
+	attribute AString name;
+
+	// Registration type to look for
+	
+	attribute AString registrationType;
+	
+	// Domain to look for service in
+	
+	attribute AString registrationDomain;
+	
+	// Last flags supplied by DNSServiceResolve (not used)
+	
+	readonly attribute long lastFlags;
+	
+	// Last interfaceIndex supplied by DNSServiceResolve
+	
+	readonly attribute long lastInterface;
+	
+	// Last error code from DNSServiceResolve
+	
+	readonly attribute long lastErrorcode;
+	
+	// Last full domain name found by DNSServiceResolve
+	
+	readonly attribute AString lastFQDN;
+	
+	// Last hostname found by DNSServiceResolve
+	
+	readonly attribute AString lastHostname;
+	
+	// Last port found by DNSServiceResolve
+	
+	readonly attribute long lastPort;
+
+    // Last primary text record found by DNSServiceResolve
+    
+    readonly attribute AString lastTxtRecord;
+    
+    // Last text record key
+    
+    readonly attribute AString lastTxtRecordKey;
+    
+    // Last text record value
+    
+    readonly attribute AString lastTxtRecordValue;
+
+	// Wrappers state
+
+	readonly attribute long status;	
+};

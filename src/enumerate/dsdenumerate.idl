@@ -1,0 +1,46 @@
+#include "nsISupports.idl"
+#include "nsITimer.idl"
+#include "nsIServiceManager.idl"
+
+[scriptable, uuid(AE851AF1-534B-4D18-AC5F-105A6A49FBB2)]
+
+interface IDSDENUMERATE : nsISupports
+{
+    
+    // Start looking for browse/registration domains
+
+    void start();
+
+    // Stop looking for browse/registration domains
+
+    void stop();
+	
+    // Look for registration or browse domains
+
+    attribute long type;
+    
+    // Interface to enumerate
+    
+    attribute long interfaceIndex;
+
+    // Last flags supplied by DNSServiceEnumerate
+     
+    readonly attribute long lastFlags;
+    
+    // Last interface found supplied by DNSServiceEnumerate
+     
+    readonly attribute long lastInterface;
+    
+    // Last error code supplied by DNSServiceEnumerate
+     
+    readonly attribute long lastErrorcode;
+    
+    // Last domain found by DNSServiceEnumerate
+     
+    readonly attribute AString lastDomain;
+
+    // Wrappers state
+     
+    readonly attribute long status;
+    
+};

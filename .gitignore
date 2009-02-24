@@ -1,0 +1,8 @@
+bin/*
+docs/*
+*.xpi
+*.zip
+*.o
+*~
+*.dylib
+*.DS_Store
