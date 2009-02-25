@@ -19,7 +19,7 @@ ifeq ($(UNAME_S),Linux)
 	DEFINE := -DXP_UNIX
 	DSDM_PATH := /home/atj/src/manager
 	DYLIB_F := -Wl,-rpath-link,$(XR_SDK)
-	DYLIB_O := dsd$(TARGET).o
+	DYLIB_O := dsd$(TARGET).so
 	G_EXTRAF := -shared -Wl,-z,defs
 	G_EXTRAL := -ldns_sd
 endif
