@@ -58,7 +58,7 @@ NS_IMETHODIMP CDSDBROWSE::Start()
         return NS_ERROR_FAILURE;
     }
     DNSServiceErrorType err = kDNSServiceErr_Unknown;
-	err = DNSServiceBrowse(&mSdRef, 0, mInterfaceIndex, ToNewUTF8String(mRegistrationType), ToNewUTF8String(mRegistrationDomain), Callback, this);
+	err = DNSServiceBrowse(&mSdRef, 0, mInterfaceIndex, ToNewUTF8String(mRegistrationType), ToNewUTF8String(mRegistrationDomain), (DNSServiceBrowseReply) Callback, this);
 	if (err != kDNSServiceErr_NoError) {
         mLastErrorcode = err;
         mStatus = 99;

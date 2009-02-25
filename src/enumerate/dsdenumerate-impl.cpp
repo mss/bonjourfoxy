@@ -62,9 +62,9 @@ NS_IMETHODIMP CDSDENUMERATE::Start()
         return NS_ERROR_FAILURE;
     }
     if (mType == 2) {
-        err = DNSServiceEnumerateDomains(&mSdRef, kDNSServiceFlagsRegistrationDomains, mInterfaceIndex, Callback, this);
+        err = DNSServiceEnumerateDomains(&mSdRef, kDNSServiceFlagsRegistrationDomains, mInterfaceIndex, (DNSServiceDomainEnumReply) Callback, this);
     } else {
-        err = DNSServiceEnumerateDomains(&mSdRef, kDNSServiceFlagsBrowseDomains, mInterfaceIndex, Callback, this);
+        err = DNSServiceEnumerateDomains(&mSdRef, kDNSServiceFlagsBrowseDomains, mInterfaceIndex, (DNSServiceDomainEnumReply) Callback, this);
     }
 	if (err != kDNSServiceErr_NoError) {
         mLastErrorcode = err;
