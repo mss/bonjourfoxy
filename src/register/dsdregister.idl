@@ -40,7 +40,7 @@ interface IDSDREGISTER : nsISupports
     
     // Port
     
-	attribute long port;
+	attribute long targetPort;
 
     // Text record key
     

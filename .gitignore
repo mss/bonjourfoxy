@@ -6,3 +6,11 @@ docs/*
 *~
 *.dylib
 *.DS_Store
+*.ncb
+*.suo
+*.dll
+*/*/Debug/*
+*.vcproj*.user
+*.sln
+ffd.sh
+*.swp

@@ -40,7 +40,7 @@ CDSDREGISTER::CDSDREGISTER()
   mName = NS_LITERAL_STRING("");
   mRegistrationType = NS_LITERAL_STRING("");
   mTargetHost = NS_LITERAL_STRING("");
-  mPort = NULL;
+  mTargetPort = NULL;
   mTxtRecordKey = NS_LITERAL_STRING("");
   mTxtRecordValue = NS_LITERAL_STRING("");
   mLastFlags = NULL;
@@ -72,7 +72,7 @@ NS_IMETHODIMP CDSDREGISTER::Start()
 		flags = kDNSServiceFlagsNoAutoRename;
 	}
 	
-	Opaque16 registerPort = { { mPort >> 8, mPort & 0xFF } };
+	Opaque16 registerPort = { { mTargetPort >> 8, mTargetPort & 0xFF } };
 	TXTRecordRef txt;
 	TXTRecordCreate(&txt,0,0);	
 	void* tTxtRecordValue = ToNewUTF8String(mTxtRecordValue);
@@ -175,14 +175,14 @@ NS_IMETHODIMP CDSDREGISTER::SetTargetHost(const nsAString & aTargetHost)
 }
 
 /* attribute long port; */
-NS_IMETHODIMP CDSDREGISTER::GetPort(PRInt32 *aPort)
+NS_IMETHODIMP CDSDREGISTER::GetTargetPort(PRInt32 *aTargetPort)
 {
-	*aPort = mPort;
+	*aTargetPort = mTargetPort;
     return NS_OK;
 }
-NS_IMETHODIMP CDSDREGISTER::SetPort(PRInt32 aPort)
+NS_IMETHODIMP CDSDREGISTER::SetTargetPort(PRInt32 aTargetPort)
 {
-	mPort = aPort;
+	mTargetPort = aTargetPort;
     return NS_OK;
 }
 

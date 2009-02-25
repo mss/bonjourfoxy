@@ -65,9 +65,9 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetTargetHost(nsAString & aTargetHost) = 0;
   NS_SCRIPTABLE NS_IMETHOD SetTargetHost(const nsAString & aTargetHost) = 0;
 
-  /* attribute long port; */
-  NS_SCRIPTABLE NS_IMETHOD GetPort(PRInt32 *aPort) = 0;
-  NS_SCRIPTABLE NS_IMETHOD SetPort(PRInt32 aPort) = 0;
+  /* attribute long targetPort; */
+  NS_SCRIPTABLE NS_IMETHOD GetTargetPort(PRInt32 *aTargetPort) = 0;
+  NS_SCRIPTABLE NS_IMETHOD SetTargetPort(PRInt32 aTargetPort) = 0;
 
   /* attribute AString txtRecordKey; */
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordKey(nsAString & aTxtRecordKey) = 0;
@@ -115,8 +115,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD SetRegistrationDomain(const nsAString & aRegistrationDomain); \
   NS_SCRIPTABLE NS_IMETHOD GetTargetHost(nsAString & aTargetHost); \
   NS_SCRIPTABLE NS_IMETHOD SetTargetHost(const nsAString & aTargetHost); \
-  NS_SCRIPTABLE NS_IMETHOD GetPort(PRInt32 *aPort); \
-  NS_SCRIPTABLE NS_IMETHOD SetPort(PRInt32 aPort); \
+  NS_SCRIPTABLE NS_IMETHOD GetTargetPort(PRInt32 *aTargetPort); \
+  NS_SCRIPTABLE NS_IMETHOD SetTargetPort(PRInt32 aTargetPort); \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordKey(nsAString & aTxtRecordKey); \
   NS_SCRIPTABLE NS_IMETHOD SetTxtRecordKey(const nsAString & aTxtRecordKey); \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordValue(nsAString & aTxtRecordValue); \
@@ -144,8 +144,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD SetRegistrationDomain(const nsAString & aRegistrationDomain) { return _to SetRegistrationDomain(aRegistrationDomain); } \
   NS_SCRIPTABLE NS_IMETHOD GetTargetHost(nsAString & aTargetHost) { return _to GetTargetHost(aTargetHost); } \
   NS_SCRIPTABLE NS_IMETHOD SetTargetHost(const nsAString & aTargetHost) { return _to SetTargetHost(aTargetHost); } \
-  NS_SCRIPTABLE NS_IMETHOD GetPort(PRInt32 *aPort) { return _to GetPort(aPort); } \
-  NS_SCRIPTABLE NS_IMETHOD SetPort(PRInt32 aPort) { return _to SetPort(aPort); } \
+  NS_SCRIPTABLE NS_IMETHOD GetTargetPort(PRInt32 *aTargetPort) { return _to GetTargetPort(aTargetPort); } \
+  NS_SCRIPTABLE NS_IMETHOD SetTargetPort(PRInt32 aTargetPort) { return _to SetTargetPort(aTargetPort); } \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordKey(nsAString & aTxtRecordKey) { return _to GetTxtRecordKey(aTxtRecordKey); } \
   NS_SCRIPTABLE NS_IMETHOD SetTxtRecordKey(const nsAString & aTxtRecordKey) { return _to SetTxtRecordKey(aTxtRecordKey); } \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordValue(nsAString & aTxtRecordValue) { return _to GetTxtRecordValue(aTxtRecordValue); } \
@@ -173,8 +173,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD SetRegistrationDomain(const nsAString & aRegistrationDomain) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetRegistrationDomain(aRegistrationDomain); } \
   NS_SCRIPTABLE NS_IMETHOD GetTargetHost(nsAString & aTargetHost) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTargetHost(aTargetHost); } \
   NS_SCRIPTABLE NS_IMETHOD SetTargetHost(const nsAString & aTargetHost) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetTargetHost(aTargetHost); } \
-  NS_SCRIPTABLE NS_IMETHOD GetPort(PRInt32 *aPort) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetPort(aPort); } \
-  NS_SCRIPTABLE NS_IMETHOD SetPort(PRInt32 aPort) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetPort(aPort); } \
+  NS_SCRIPTABLE NS_IMETHOD GetTargetPort(PRInt32 *aTargetPort) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTargetPort(aTargetPort); } \
+  NS_SCRIPTABLE NS_IMETHOD SetTargetPort(PRInt32 aTargetPort) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetTargetPort(aTargetPort); } \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordKey(nsAString & aTxtRecordKey) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTxtRecordKey(aTxtRecordKey); } \
   NS_SCRIPTABLE NS_IMETHOD SetTxtRecordKey(const nsAString & aTxtRecordKey) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetTxtRecordKey(aTxtRecordKey); } \
   NS_SCRIPTABLE NS_IMETHOD GetTxtRecordValue(nsAString & aTxtRecordValue) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTxtRecordValue(aTxtRecordValue); } \
@@ -290,12 +290,12 @@ NS_IMETHODIMP _MYCLASS_::SetTargetHost(const nsAString & aTargetHost)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* attribute long port; */
-NS_IMETHODIMP _MYCLASS_::GetPort(PRInt32 *aPort)
+/* attribute long targetPort; */
+NS_IMETHODIMP _MYCLASS_::GetTargetPort(PRInt32 *aTargetPort)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
-NS_IMETHODIMP _MYCLASS_::SetPort(PRInt32 aPort)
+NS_IMETHODIMP _MYCLASS_::SetTargetPort(PRInt32 aTargetPort)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -163,7 +163,7 @@ NS_IMETHODIMP CDSDBROWSE::GetStatus(PRInt32 *aStatus)
     return NS_OK;
 }
 
-void CDSDBROWSE::DNSSD_API Callback (
+void DNSSD_API CDSDBROWSE::Callback(
   	DNSServiceRef			inSdRef,
 	DNSServiceFlags			inFlags,
 	uint32_t 				inInterfaceIndex,

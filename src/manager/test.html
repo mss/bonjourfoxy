@@ -1,0 +1,22 @@
+<html>
+<head>
+<script type="text/javascript">
+function go()   {
+netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService();
+document.write(obj + "<br/>")
+obj.QueryInterface(Components.interfaces.IDSDMANAGER);
+document.write(obj + "<br/>");
+try { obj.handleEvent('Register',Array('name','regtype','hostname')); } catch (e) { document.write(e); } 
+if (obj.acceptEvents)   {
+    document.write("True<br/>");
+    } else {
+    document.write("False<br/>");
+    }
+};
+</script>
+</head>
+<body onload='go()'>
+<textarea id='foo'></textarea>
+</body>
+</html>

@@ -63,7 +63,7 @@ protected:
   nsString mRegistrationType;
   nsString mRegistrationDomain;
   nsString mTargetHost;
-  long mPort;
+  long mTargetPort;
   nsString mTxtRecordKey;
   nsString mTxtRecordValue;
   long mLastFlags;

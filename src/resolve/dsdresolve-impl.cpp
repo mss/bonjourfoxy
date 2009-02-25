@@ -282,8 +282,12 @@ void DNSSD_API CDSDRESOLVE::Callback(
 			nsCOMPtr<nsIWritableVariant> outKey = do_CreateInstance("@mozilla.org/variant;1");
 			outKey->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(key)) );
 			
-			char tValue[valueLen+1];
-			snprintf (tValue, sizeof(tValue), "%.*s\n", (int) valueLen, voidValue);
+			// this needs attention.........
+			// char tValue[valueLen+1];
+			char tValue[2056];
+			// snprintf (tValue, sizeof(tValue), "%.*s\n", (int) valueLen, voidValue);
+			sprintf(tValue,"%s",voidValue);
+			tValue[valueLen] = '\0';
 			self->mLastTxtRecordValue=NS_ConvertUTF8toUTF16(tValue);
 			nsCOMPtr<nsIWritableVariant> outValue = do_CreateInstance("@mozilla.org/variant;1");        
 			outValue->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(tValue)) );

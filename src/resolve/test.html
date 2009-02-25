@@ -1,0 +1,24 @@
+<html>
+<head>
+<script type="text/javascript">
+function go()   {
+netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+var obj=Components.classes["@andrew.tj.id.au/dsdresolve;1"].getService(); // createInstance();
+obj.QueryInterface(Components.interfaces.IDSDRESOLVE);
+obj.interfaceIndex=0;
+obj.name = "Twitter: AndrewTJ";
+obj.registrationType = "_http._tcp";
+obj.registrationDomain = "local.";
+document.write("Status: " + obj.status + " regtype " + obj.registrationType + " regdom " + obj.registrationDomain + "<br/>");
+obj.start();
+document.write("Status: " + obj.status + "<br/>");
+// obj.stop();
+// document.write("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode + "<br/>");
+// obj=null;
+}
+</script>
+</head>
+<body onload='go()'>
+<textarea id='foo'></textarea>
+<input type='button' onclick='alert("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode);'>
+</html>
