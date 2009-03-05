@@ -13,36 +13,434 @@ function DSDMANAGER() {
   // while testing without
   // writing your own interface
   this.wrappedJSObject = this;
+  this.storageService = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService);
+  this.DBConn = this.storageService.openDatabase(null);
+  this.DBConn.executeSimpleSQL('CREATE TABLE DiscoveredServices ( "regdomain" text, "regtype" text, "servicename" text, "ifindex" integer, UNIQUE ("regdomain", "regtype", "servicename", "ifindex"))');
+  this.DBConn.executeSimpleSQL('CREATE TABLE DiscoveredDomains ("regdomain" text, "domaintype" text, "ifindex" integer, UNIQUE("regdomain", "domaintype", "ifindex"))');
+  this.BrowseEnumerateInstance=Components.classes["@andrew.tj.id.au/dsdenumerate;1"].createInstance(Components.interfaces.IDSDENUMERATE);
+  this.BrowseEnumerateInstance.type=1;
+  this.BrowseEnumerateInstance.interfaceIndex=0;
+  this.BrowseEnumerateInstance.start();
+  this.RegistrationEnumerateInstance=Components.classes["@andrew.tj.id.au/dsdenumerate;1"].createInstance(Components.interfaces.IDSDENUMERATE);
+  this.RegistrationEnumerateInstance.type=2;
+  this.RegistrationEnumerateInstance.interfaceIndex=0;
+  this.RegistrationEnumerateInstance.start();
 }
 
 // This is the implementation of your component.
 DSDMANAGER.prototype = {
-  handleEvent: function(from,data)
+  Log: function(message)   {
+    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+    aConsoleService.logStringMessage(message);
+  },
+  BrowseInstances: Object(),
+  discoverServices: function(regType,regDomain)
   {
-    var valuestext = "\t";
-    if (from != "resolve")  {
-        for (i=0;i<data.length;i++) {
-            valuestext += data.queryElementAt(i,Components.interfaces.nsIVariant) + "\t";
+    this.Log("discoverServices(" + regType + "," + regDomain + ")");
+    if (null==regDomain)
+    {
+        if (!this.BrowseInstances[regType])
+        {
+            this.BrowseInstances[regType] = Components.classes["@andrew.tj.id.au/dsdbrowse;1"].createInstance(Components.interfaces.IDSDBROWSE);
+            this.BrowseInstances[regType].interfaceIndex=0;
+            this.BrowseInstances[regType].registrationType=regType;
+            this.BrowseInstances[regType].registrationDomain=null;
+            this.BrowseInstances[regType].start();
+        }    
+    } 
+    else
+    {
+        if (!this.BrowseInstances[regDomain]) this.BrowseInstances[regDomain] = Object();
+        if (!this.BrowseInstances[regDomain][regType])
+        {
+            this.BrowseInstances[regDomain][regType] = Components.classes["@andrew.tj.id.au/dsdbrowse;1"].createInstance(Components.interfaces.IDSDBROWSE);
+            this.BrowseInstances[regDomain][regType].interfaceIndex=0;
+            this.BrowseInstances[regDomain][regType].registrationType=regType;
+            this.BrowseInstances[regDomain][regType].registrationDomain=regDomain;
+            this.BrowseInstances[regDomain][regType].start();
         }
+    }                
+    return true;
+  },
+  getDiscoveredDomains: function(domainType)
+  {
+    this.Log("getDiscoveredDomains(" + domainType + ")");
+    var arrayDiscoveredDomains = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+    if (domainType == null) {
+        var sqlDiscoveredDomains = this.DBConn.createStatement("SELECT * FROM DiscoveredDomains GROUP BY regdomain, domaintype");
     } else {
-    if (from == "resolve")    {
-        for (i=0;i<6;i++) {
-            valuestext += data.queryElementAt(i,Components.interfaces.nsIVariant) + "\t";
+        var sqlDiscoveredDomains = this.DBConn.createStatement("SELECT * FROM DiscoveredDomains WHERE domaintype=?1 GROUP BY regdomain, domaintype");        
+        sqlDiscoveredDomains.bindUTF8StringParameter(0, domainType);
+    }
+    while(sqlDiscoveredDomains.executeStep())   {
+        var arrayDiscoveredDomain = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+        var regDomain = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        regDomain.setFromVariant(sqlDiscoveredDomains.getUTF8String(0));
+        arrayDiscoveredDomain.appendElement(regDomain, 0);
+        var domainType = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        domainType.setFromVariant(sqlDiscoveredDomains.getUTF8String(1));
+        arrayDiscoveredDomain.appendElement(domainType, 0);
+        arrayDiscoveredDomains.appendElement(arrayDiscoveredDomain, 0);
+    }
+    return arrayDiscoveredDomains;
+  },
+  getDiscoveredDomainsCount: function(domainType)
+  {
+    this.Log("getDiscoveredDomainsCount(" + domainType + ")");
+    var count=0;
+    var sqlCountDiscoveredDomains = null;
+    if (domainType == null) {
+        sqlCountDiscoveredDomains = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredDomains GROUP BY regdomain, domaintype");
+    } else {
+        sqlCountDiscoveredDomains = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredDomains WHERE domaintype=?1 GROUP BY regdomain, domaintype");
+        sqlCountDiscoveredDomains.bindUTF8StringParameter(0, domainType);
+    }
+    /* there's gotta be a better way... */
+    while (sqlCountDiscoveredDomains.executeStep()) {
+        count++;
+    }
+    this.Log("getDiscoveredDomainsCount(" + domainType + ") returning: " + count);
+    return count;
+  },  
+  getDiscoveredServices: function (regType, regDomain)
+  {
+    this.Log("getDiscoveredServices(" + regType + "," + regDomain + ")");
+    var arrayDiscoveredServices = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+    var sqlDiscoveredServices = null;
+    if (regDomain==null)    {
+        sqlDiscoveredServices = this.DBConn.createStatement("SELECT regdomain, regtype, servicename FROM DiscoveredServices WHERE regtype = ?1 GROUP BY regdomain, regtype, servicename");
+    } else {
+        sqlDiscoveredServices = this.DBConn.createStatement("SELECT regdomain, regtype, servicename FROM DiscoveredServices WHERE regtype = ?1 AND regdomain = ?2 GROUP BY regdomain, regtype, servicename");
+        sqlDiscoveredServices.bindUTF8StringParameter(1, regDomain);
+    }
+    sqlDiscoveredServices.bindUTF8StringParameter(0, regType);
+    while (sqlDiscoveredServices.executeStep()) {
+      var arrayDiscoveredService = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+      // discoveredService.regDomain = sqlDiscoveredServices.getUTF8String(0);
+      var regDomain = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+      regDomain.setFromVariant(sqlDiscoveredServices.getUTF8String(0));
+      arrayDiscoveredService.appendElement(regDomain, 0);
+      // discoveredService.regType = sqlDiscoveredServices.getUTF8String(1);
+      var regType = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+      regType.setFromVariant(sqlDiscoveredServices.getUTF8String(1));
+      arrayDiscoveredService.appendElement(regType, 0);
+      // discoveredService.serviceName = sqlDiscoveredServices.getUTF8String(2)
+      var serviceName = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+      serviceName.setFromVariant(sqlDiscoveredServices.getUTF8String(2));
+      arrayDiscoveredService.appendElement(serviceName, 0);
+      arrayDiscoveredServices.appendElement(arrayDiscoveredService, 0);
+    }
+    return arrayDiscoveredServices;
+  },
+  getDiscoveredServicesCount: function(regType, regDomain)
+  {
+    this.Log("getDiscoveredServicesCount(" + regType + "," + regDomain + ")");
+    var count=0;
+    var sqlCountDiscoveredServices = null;
+    if (regDomain==null)    {
+        sqlCountDiscoveredServices = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredServices WHERE regtype = ?1 GROUP BY regdomain, regtype, servicename");
+    } else {
+        sqlCountDiscoveredServices = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredServices WHERE regtype = ?1 AND regdomain = ?2 GROUP BY regdomain, regtype, servicename");
+        sqlCountDiscoveredServices.bindUTF8StringParameter(1, regDomain);
+    }
+    sqlCountDiscoveredServices.bindUTF8StringParameter(0, regType);
+    while (sqlCountDiscoveredServices.executeStep()) {
+        count++;
+    }
+    this.Log("getDiscoveredServicesCount(" + regType + "," + regDomain + ") returning: " + count);
+    return count;
+  },
+  ResolverInstances: Object(),
+  ResolverInstance: function()  {
+      var now = new Date();
+      this.initTS=Math.round(now.getTime()/1000.0);
+      this.stopTS=-1;
+      this.obj=Components.classes["@andrew.tj.id.au/dsdresolve;1"].getService();
+      this.obj.QueryInterface(Components.interfaces.IDSDRESOLVE);
+      this.obj.interfaceIndex=0;
+      this.timeout=5;
+      this.targetHostname="";
+      this.targetPort="";
+      this.txtRecords=Array();
+      return this;
+  },
+  resolveService: function(serviceName,regType,regDomain,timeout)
+  {
+    this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ")");
+    var arrayResolvedService = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+    var id = serviceName + "." + regType + "." + regDomain;
+    if (!this.ResolverInstances[id])
+    {
+        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): creating resolver instance");
+        this.ResolverInstances[id] = new this.ResolverInstance();
+        this.ResolverInstances[id].obj.name = serviceName;
+        this.ResolverInstances[id].obj.registrationType = regType;
+        this.ResolverInstances[id].obj.registrationDomain = regDomain;
+        if (timeout<6 && timeout>0) this.ResolverInstances[id].timeout = timeout;
+        try
+        {
+            this.ResolverInstances[id].obj.start();
+        }
+        catch (e)
+        {
+            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ") failed: " + e);
+        }
+    }
+    else if (this.ResolverInstances[id].obj.status == 99)
+    {
+        var managerError = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        managerError.setFromVariant("99");
+        arrayResolvedService.appendElement(managerError, 0);
+        var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        lastErrorcode.setFromVariant(this.ResolverInstances[id].obj.lastErrorcode);
+        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): fatal state 99");
+    }
+    else if (this.ResolverInstances[id].obj.status == 2)
+    {
+        var targetHostname = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        targetHostname.setFromVariant(this.ResolverInstances[id].targetHostname);
+        arrayResolvedService.appendElement(targetHostname, 0);
+        var targetPort = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        targetPort.setFromVariant(this.ResolverInstances[id].targetPort);
+        arrayResolvedService.appendElement(targetPort, 0);
+        // var txtRecords = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+        // txtRecords.setFromVariant(this.ResolverInstances[id].txtRecords);
+        arrayResolvedService.appendElement(this.ResolverInstances[id].txtRecords, 0);
+        
+        /*
+        for (var i=0;i<this.ResolverInstances[id].txtRecords.length;i++) 
+        {
+            handle = this.ResolverInstances[id].txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
+            if (handle.length == 2)
+            {
+                this.Log("{key:" + handle.queryElementAt(0,Components.interfaces.nsIVariant) + ",value:" + handle.queryElementAt(1,Components.interfaces.nsIVariant) + "}");
             }
         }
-        for (i=6;i<data.length;i++) {
+        */
+        
+        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): returned data in state 2");
+    }
+    else if (this.ResolverInstances[id].obj.status == 1)
+    {
+        var now = new Date();
+        var waitTime=Math.round(now.getTime()/1000.0)-this.ResolverInstances[id].initTS;
+        if (waitTime>this.ResolverInstances[id].timeout)
+        {
+            var managerError = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+            managerError.setFromVariant("98");
+            arrayResolvedService.appendElement(managerError, 0);
+            var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+            lastErrorcode.setFromVariant(this.ResolverInstances[id].obj.lastErrorcode);
+            arrayResolvedService.appendElement(lastErrorcode, 0);
+            
+            this.ResolverInstances[id].obj.stop();
+            this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
+
+            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): timed out in state 1");
+        }
+    }
+    else if (this.ResolverInstances[id].obj.status == 0)
+    {
+        if ( (this.ResolverInstances[id].stopTS-this.ResolverInstances[id].initTS)>this.ResolverInstances[id].timeout )
+        {
+            var managerError = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+            managerError.setFromVariant("98");
+            arrayResolvedService.appendElement(managerError, 0);
+            var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+            lastErrorcode.setFromVariant(this.ResolverInstances[id].obj.lastErrorcode);
+            var now = new Date();
+            if ((Math.round(now.getTime()/1000.0) - this.ResolverInstances[id].stopTS)>5)   {
+                this.ResolverInstances[id]=null;
+                delete this.ResolverInstances[id];
+                this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): delete timed out obj in manager state 98");
+            } else {
+                this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): remaining in time out in manager state 98");
+            }
+        } else {
+            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): in state 0 for unknown reason. failed to start?");
+        }
+    }
+    this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ") returning " +  arrayResolvedService.length + " args");
+    return arrayResolvedService;
+  },
+  RegistrationInstances: Object(),
+  addService: function(serviceName, regType, targetHost, targetPort, txtKey, txtValue, regDomain)   {
+    var CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+    var chars = CHARS, uuid = [], rnd = Math.random;
+    for (var i = 0; i < 15; i++) uuid[i] = chars[0 | rnd()*chars.length];
+    var id = uuid.join('');
+    this.RegistrationInstances[id] = Components.classes["@andrew.tj.id.au/dsdregister;1"].createInstance(Components.interfaces.IDSDREGISTER);
+    this.RegistrationInstances[id].interfaceIndex=0;
+    this.RegistrationInstances[id].autorename = true;
+    this.RegistrationInstances[id].name = serviceName;
+    this.RegistrationInstances[id].registrationType = regType;
+    this.RegistrationInstances[id].registrationDomain = regDomain;
+    this.RegistrationInstances[id].targetHost = targetHost;
+    this.RegistrationInstances[id].targetPort = targetPort;
+    this.RegistrationInstances[id].txtRecordKey = txtKey;
+    this.RegistrationInstances[id].txtRecordValue = txtValue;
+    try {
+        this.RegistrationInstances[id].start();
+    }
+    catch (e)   {
+        this.RegistrationInstances[id]=null;
+        delete this.RegistrationInstances[id];
+        return ""
+    }
+    return id;
+  },
+  removeService: function(identifier)   {
+    if (this.RegistrationInstances[identifier])  {
+        this.RegistrationInstances[identifier].stop();
+        this.RegistrationInstances[identifier]=null;
+        delete this.RegistrationInstances[identifier];
+    }
+  },    
+  handleEvent: function(from,data)
+  {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+    /* logging only */
+    var valuestext = "";
+    if (from != "resolve")
+    {
+        for (i=0;i<data.length;i++)
+        {
+            valuestext += "," + data.queryElementAt(i,Components.interfaces.nsIVariant);
+        }
+    } 
+    else 
+    {
+        if (from == "resolve")
+        {
+            for (i=0;i<4;i++)
+            {
+                valuestext += "," + data.queryElementAt(i,Components.interfaces.nsIVariant);
+            }
+        }
+        for (i=4;i<data.length;i++) 
+        {
             handle = data.queryElementAt(i,Components.interfaces.nsIArray);
-            if (handle.length == 2) {
-                valuestext += handle.queryElementAt(0,Components.interfaces.nsIVariant) + "=" + handle.queryElementAt(1,Components.interfaces.nsIVariant);
+            if (handle.length == 2)
+            {
+                valuestext += ",{key:" + handle.queryElementAt(0,Components.interfaces.nsIVariant) + ",value:" + handle.queryElementAt(1,Components.interfaces.nsIVariant) + "}";
             }
         }
     }
-    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
-         getService(Components.interfaces.nsIConsoleService);
-    aConsoleService.logStringMessage("Call from " + from + " with " + data.length + " args: " + valuestext);
+    this.Log("handleEvent(" + from + valuestext +")");
+    /* implementation */
+    if (from == "resolve")
+    {
+        var id = data.queryElementAt(0,Components.interfaces.nsIVariant);
+        var now = new Date();
+        this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
+        // this.Log("It took " + (this.ResolverInstances[id].stopTS - this.ResolverInstances[id].initTS) + " seconds to resolve...");
+        this.ResolverInstances[id].targetHostname = data.queryElementAt(2,Components.interfaces.nsIVariant);
+        this.ResolverInstances[id].targetPort = data.queryElementAt(3,Components.interfaces.nsIVariant);
+        if (data.length>3)
+        {
+            this.ResolverInstances[id].txtRecords = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+            for (i=4;i<data.length;i++)
+            {
+                var trHandle = data.queryElementAt(i,Components.interfaces.nsIArray);
+                if (trHandle.length == 2)
+                {
+                    var txtPair = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+                    var txtKey = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                    txtKey.setFromVariant(trHandle.queryElementAt(0,Components.interfaces.nsIVariant));
+                    var txtValue = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                    txtValue.setFromVariant(trHandle.queryElementAt(1,Components.interfaces.nsIVariant));
+                    txtPair.appendElement(txtKey,0);
+                    txtPair.appendElement(txtValue,0);
+                    this.ResolverInstances[id].txtRecords.appendElement(txtPair,0);
+                }
+            }
+        }
+    }
+    else if (from == "enumerate")
+    {
+        flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
+        if (flags == 'add')
+        {
+            var sqlAddDiscoveredDomain = this.DBConn.createStatement("INSERT INTO DiscoveredDomains VALUES (?1, ?2, ?3)");
+            var interfaceIndex = data.queryElementAt(2,Components.interfaces.nsIVariant);
+            sqlAddDiscoveredDomain.bindInt32Parameter(2, interfaceIndex);
+            var regDomain = data.queryElementAt(3,Components.interfaces.nsIVariant);
+            sqlAddDiscoveredDomain.bindUTF8StringParameter(0, regDomain);
+            var domainType = data.queryElementAt(1,Components.interfaces.nsIVariant); 
+            sqlAddDiscoveredDomain.bindUTF8StringParameter(1, domainType);
+            try
+            {
+                sqlAddDiscoveredDomain.execute();
+            } 
+            catch (e if this.DBConn.lastError == 19)
+            {
+                this.Log("Record for DiscoveredDomains (" + regDomain + "," + domainType + ") already exists");
+            }
+            sqlAddDiscoveredDomain.reset();
+            observerService.notifyObservers(null,"dsd_add",regDomain);
+        } else if (flags == "rmv")
+        {
+            observerService.notifyObservers(null,"DSD","domainDiscovered");
+            var sqlRmvDiscoveredDomain = this.DBConn.createStatement("DELETE FROM DiscoveredDomains WHERE regdomain = ?1 AND domaintype = ?2 AND ifindex = ?3");
+            var interfaceIndex = data.queryElementAt(2,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredDomain.bindInt32Parameter(2, interfaceIndex);
+            var regDomain = data.queryElementAt(3,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredDomain.bindUTF8StringParameter(0, regDomain);
+            var domainType = data.queryElementAt(1,Components.interfaces.nsIVariant); 
+            sqlRmvDiscoveredDomain.bindUTF8StringParameter(1, domainType);
+            sqlRmvDiscoveredDomain.execute();
+            sqlRmvDiscoveredDomain.reset();
+            observerService.notifyObservers(null,"dsd_rdd",regDomain);
+        }        
+    }
+    else if (from == "browse")
+    {
+        flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
+        if (flags == 'add')
+        {
+            var sqlAddDiscoveredService = this.DBConn.createStatement("INSERT INTO DiscoveredServices VALUES (?1, ?2, ?3, ?4)");
+            var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
+            sqlAddDiscoveredService.bindUTF8StringParameter(0, regDomain);
+            var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
+            sqlAddDiscoveredService.bindUTF8StringParameter(1, regType);
+            var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
+            sqlAddDiscoveredService.bindUTF8StringParameter(2, serviceName);
+            var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant); 
+            sqlAddDiscoveredService.bindInt32Parameter(3,interfaceIndex);
+            try
+            {
+                sqlAddDiscoveredService.execute();
+            }
+            // this may not be necessary since we bother to capture the interfaceIndex now
+            catch (e if this.DBConn.lastError == 19)
+            {
+                this.Log("Record for DiscoveredServices (" + regDomain + "," + regType + "," + serviceName + ") already exists");
+            } 
+            sqlAddDiscoveredService.reset();
+            observerService.notifyObservers(null,"dsd_ads",regType);
+        }
+        else if (flags == "rmv")
+        {
+            var sqlRmvDiscoveredService = this.DBConn.createStatement("DELETE FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename = ?3 AND ifindex = ?4");
+            var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredService.bindUTF8StringParameter(0, regDomain);
+            var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredService.bindUTF8StringParameter(1, regType);
+            var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredService.bindUTF8StringParameter(2, serviceName);
+            var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
+            sqlRmvDiscoveredService.bindInt32Parameter(3, interfaceIndex);
+            sqlRmvDiscoveredService.execute();
+            sqlRmvDiscoveredService.reset();
+            observerService.notifyObservers(null,"dsd_rds",regType);
+        }
+        else
+        {
+            this.Log("Browse Service Recieved Error No " + flags);
+        }
+    }
   },
-  get acceptEvents() { return this.acceptingEvents; },
-  acceptingEvents: true,
   // for nsISupports
   QueryInterface: function(aIID)
   {

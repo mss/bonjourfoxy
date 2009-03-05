@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 
+
 #include "dsdmanager.h"
 
 #include "nsIArray.h"
@@ -21,6 +22,8 @@
 
 #ifndef _WIN32
 #include <sys/time.h>
+#else
+#define snprintf _snprintf
 #endif
 
 #include <errno.h>			// For errno, EINTR
@@ -36,6 +39,8 @@ CDSDRESOLVE::CDSDRESOLVE()
   mLastFlags = NULL;
   mLastInterface = NULL;
   mLastErrorcode = NULL;
+  mName = NS_LITERAL_STRING("");
+  mUsersName = NS_LITERAL_STRING("");
   mLastFQDN = NS_LITERAL_STRING("");
   mLastHostname = NS_LITERAL_STRING("");
   mLastPort = NULL;
@@ -60,6 +65,12 @@ NS_IMETHODIMP CDSDRESOLVE::Start()
     if (mStatus == 99) {
         return NS_ERROR_FAILURE;
     }
+    mUsersName = NS_LITERAL_STRING("");
+    mUsersName.Append(mName);
+    mUsersName.Append(NS_LITERAL_STRING("."));
+    mUsersName.Append(mRegistrationType);
+    mUsersName.Append(NS_LITERAL_STRING("."));
+    mUsersName.Append(mRegistrationDomain);
 	err = DNSServiceResolve(&mSdRef, 0, mInterfaceIndex, ToNewUTF8String(mName) , ToNewUTF8String(mRegistrationType), ToNewUTF8String(mRegistrationDomain), (DNSServiceResolveReply) Callback, this);
 	if (err != kDNSServiceErr_NoError) {
         mLastErrorcode = err;
@@ -229,73 +240,90 @@ void DNSSD_API CDSDRESOLVE::Callback(
 
         nsCOMPtr<nsIMutableArray> array = do_CreateInstance(NS_ARRAY_CONTRACTID);
 
-		
-        nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
-        oFlags->SetAsInt32(inFlags);
-        array->AppendElement(oFlags, PR_FALSE);
-        self->mLastFlags = inFlags;
-
-        nsCOMPtr<nsIWritableVariant> oInterfaceIndex = do_CreateInstance("@mozilla.org/variant;1");
-        oInterfaceIndex->SetAsInt32(inInterfaceIndex);
-        array->AppendElement(oInterfaceIndex, PR_FALSE);        
-        self->mLastInterface = inInterfaceIndex;
-
-        nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
-        oErrorCode->SetAsInt32(inErrorCode);
-        array->AppendElement(oErrorCode, PR_FALSE);        
         self->mLastErrorcode = inErrorCode;
-
-        nsCOMPtr<nsIWritableVariant> oFQDN = do_CreateInstance("@mozilla.org/variant;1");        
-        oFQDN->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inFQDN)) );
-        array->AppendElement(oFQDN, PR_FALSE);
-        self->mLastFQDN = NS_ConvertUTF8toUTF16(inFQDN);  
-
-        nsCOMPtr<nsIWritableVariant> oHostname = do_CreateInstance("@mozilla.org/variant;1");        
-        oHostname->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inHostname)) );
-        array->AppendElement(oHostname, PR_FALSE);
-        self->mLastHostname = NS_ConvertUTF8toUTF16(inHostname);
-
-        nsCOMPtr<nsIWritableVariant> oPort = do_CreateInstance("@mozilla.org/variant;1");
-		union { uint16_t s; u_char b[2]; } port = { inPort };
-		uint16_t PortAsNumber = ((uint16_t)port.b[0]) << 8 | port.b[1];
-        oPort->SetAsInt32(PortAsNumber);
-        array->AppendElement(oPort, PR_FALSE);        
-        self->mLastPort = PortAsNumber;
-
-
-		self->mLastTxtRecordKey=NS_LITERAL_STRING("");		
-		self->mLastTxtRecordKey=NS_LITERAL_STRING("");
-		self->mLastTxtRecordValue=NS_LITERAL_STRING("");
-
-		char key[256];
-		int index=0;
-		uint8_t valueLen;
-		const void *voidValue = 0;
-		while (TXTRecordGetItemAtIndex(inTxtLen,inTxtRecord,index++,256,key, &valueLen,
-		&voidValue) == kDNSServiceErr_NoError) 
+        if (inErrorCode == kDNSServiceErr_NoError)
         {
-			// printf("Key: %s Value: %s\n", key, voidValue);
-			
-			nsCOMPtr<nsIMutableArray> oTxtRecord = do_CreateInstance(NS_ARRAY_CONTRACTID);
-			
-			self->mLastTxtRecordKey=NS_ConvertUTF8toUTF16(key);
-			nsCOMPtr<nsIWritableVariant> outKey = do_CreateInstance("@mozilla.org/variant;1");
-			outKey->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(key)) );
-			
-			// this needs attention.........
-			// char tValue[valueLen+1];
-			char tValue[2056];
-			// snprintf (tValue, sizeof(tValue), "%.*s\n", (int) valueLen, voidValue);
-			sprintf(tValue,"%s",voidValue);
-			tValue[valueLen] = '\0';
-			self->mLastTxtRecordValue=NS_ConvertUTF8toUTF16(tValue);
-			nsCOMPtr<nsIWritableVariant> outValue = do_CreateInstance("@mozilla.org/variant;1");        
-			outValue->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(tValue)) );
-			
-			oTxtRecord->AppendElement(outKey, PR_FALSE);
-			oTxtRecord->AppendElement(outValue, PR_FALSE);
-			
-			array->AppendElement(oTxtRecord, PR_FALSE);
+            nsCOMPtr<nsIWritableVariant> oUsersName = do_CreateInstance("@mozilla.org/variant;1");        
+            oUsersName->SetAsAUTF8String(NS_ConvertUTF16toUTF8(self->mUsersName));
+            array->AppendElement(oUsersName, PR_FALSE);
+
+            /*
+            nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
+            oFlags->SetAsInt32(inFlags);
+            array->AppendElement(oFlags, PR_FALSE);
+            self->mLastFlags = inFlags;
+            */
+            
+            self->mLastInterface = inInterfaceIndex;
+    
+            nsCOMPtr<nsIWritableVariant> oFQDN = do_CreateInstance("@mozilla.org/variant;1");        
+            oFQDN->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inFQDN)) );
+            array->AppendElement(oFQDN, PR_FALSE);
+            self->mLastFQDN = NS_ConvertUTF8toUTF16(inFQDN);  
+    
+            nsCOMPtr<nsIWritableVariant> oHostname = do_CreateInstance("@mozilla.org/variant;1");        
+            oHostname->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inHostname)) );
+            array->AppendElement(oHostname, PR_FALSE);
+            self->mLastHostname = NS_ConvertUTF8toUTF16(inHostname);
+    
+            nsCOMPtr<nsIWritableVariant> oPort = do_CreateInstance("@mozilla.org/variant;1");
+    		union { uint16_t s; u_char b[2]; } port = { inPort };
+    		uint16_t PortAsNumber = ((uint16_t)port.b[0]) << 8 | port.b[1];
+            oPort->SetAsInt32(PortAsNumber);
+            array->AppendElement(oPort, PR_FALSE);        
+            self->mLastPort = PortAsNumber;
+      
+    		self->mLastTxtRecordKey=NS_LITERAL_STRING("");		
+    		self->mLastTxtRecordKey=NS_LITERAL_STRING("");
+    		self->mLastTxtRecordValue=NS_LITERAL_STRING("");
+    
+    		char key[256];
+    		int index=0;
+    		uint8_t valueLen;
+    		const void *voidValue = 0;
+    		while (TXTRecordGetItemAtIndex(inTxtLen,inTxtRecord,index++,256,key, &valueLen,
+    		&voidValue) == kDNSServiceErr_NoError) 
+            {
+    			// printf("Key: %s Value: %s\n", key, voidValue);
+    			
+    			nsCOMPtr<nsIMutableArray> oTxtRecord = do_CreateInstance(NS_ARRAY_CONTRACTID);
+    			
+    			self->mLastTxtRecordKey=NS_ConvertUTF8toUTF16(key);
+    			nsCOMPtr<nsIWritableVariant> outKey = do_CreateInstance("@mozilla.org/variant;1");
+    			outKey->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(key)) );
+    			
+    			// this needs attention.........
+				char *tValue = NULL;
+				tValue = new char[valueLen+1];
+    			snprintf (tValue, valueLen+1, "%.*s\n", (int) valueLen, voidValue);
+    			tValue[valueLen] = '\0';
+
+    			self->mLastTxtRecordValue=NS_ConvertUTF8toUTF16(tValue);
+    			nsCOMPtr<nsIWritableVariant> outValue = do_CreateInstance("@mozilla.org/variant;1");        
+    			outValue->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(tValue)) );
+
+				free(tValue);
+
+    			oTxtRecord->AppendElement(outKey, PR_FALSE);
+    			oTxtRecord->AppendElement(outValue, PR_FALSE);
+    			
+    			array->AppendElement(oTxtRecord, PR_FALSE);
+            }
+            self->mStatus = 2;
+            if (self->mTimer)
+                self->mTimer->Cancel();
+            DNSServiceRefDeallocate(self->mSdRef);                
+        }
+        else
+        {
+            self->mStatus = 99;
+            if (self->mTimer)
+                self->mTimer->Cancel();
+            nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
+            oErrorCode->SetAsInt32(inErrorCode);
+            array->AppendElement(oErrorCode, PR_FALSE);        
+            self->mLastErrorcode = inErrorCode;
+            DNSServiceRefDeallocate(self->mSdRef);
         }
     	dsdmanager->HandleEvent(NS_LITERAL_STRING("resolve"),array);
     }

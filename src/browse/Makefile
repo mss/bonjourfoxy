@@ -1,4 +1,4 @@
-UNAME_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+UNAME_S := $(shell sh -c 'uname -s 2>/dev/null | tr 'A-Z' 'a-z' || echo not')
 PATH_F := $(shell pwd )
 PATH_B := $(shell basename $(PATH_F) )
 TARGET := $(PATH_B)-$(UNAME_S)
@@ -7,14 +7,14 @@ IMPL_S := dsd$(PATH_B)-impl.cpp
 IMPL_O := dsd$(TARGET)-impl.o
 MODU_S := dsd$(PATH_B)-module.cpp
 MODU_O := dsd$(TARGET)-module.o
-ifeq ($(UNAME_S),Darwin)
+ifeq ($(UNAME_S),darwin)
 	XR_PATH := /Developer/xulrunner-1.9.0.6
 	DEFINE := -DXP_UNIX -DXP_MACOSX
 	DSDM_PATH := ~atj/XP_Share/bonjourfoxy/src/manager
 	DYLIB_F := -Wl,-executable_path,$(XR_BIN)
 	DYLIB_O := dsd$(TARGET).dylib
 endif
-ifeq ($(UNAME_S),Linux)
+ifeq ($(UNAME_S),linux)
 	XR_PATH := /home/atj/Source/xulrunner-sdk
 	DEFINE := -DXP_UNIX
 	DSDM_PATH := /home/atj/src/manager

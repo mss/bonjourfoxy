@@ -1,22 +1,117 @@
 <html>
 <head>
 <script type="text/javascript">
-function go()   {
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService();
-document.write(obj + "<br/>")
 obj.QueryInterface(Components.interfaces.IDSDMANAGER);
-document.write(obj + "<br/>");
-try { obj.handleEvent('Register',Array('name','regtype','hostname')); } catch (e) { document.write(e); } 
-if (obj.acceptEvents)   {
-    document.write("True<br/>");
-    } else {
-    document.write("False<br/>");
+
+function myObserver()
+{
+  this.register();
+}
+myObserver.prototype = {
+  observe: function(subject, topic, data) {
+     // Do your stuff here.
+     // var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+     // aConsoleService.logStringMessage(topic + " " + data);
+     document.getElementById('foo').innerHTML += "topic: " + topic + " data: " + data + "<br/>";
+  },
+  register: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
+    observerService.addObserver(this, "dsd_add", false);
+    observerService.addObserver(this, "dsd_rdd", false);
+    observerService.addObserver(this, "dsd_ads", false);
+    observerService.addObserver(this, "dsd_rds", false);
+  },
+  unregister: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                            .getService(Components.interfaces.nsIObserverService);
+    observerService.removeObserver(this, "dsd_add", false);
+    observerService.removeObserver(this, "dsd_rdd", false);
+    observerService.removeObserver(this, "dsd_ads", false);
+    observerService.removeObserver(this, "dsd_rds", false);
+  }
+}
+
+var observer = new myObserver();
+var interval;
+
+function go()   {
+   netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+    // var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService();
+    // obj.QueryInterface(Components.interfaces.IDSDMANAGER);
+    document.getElementById('foo').innerHTML += ("Manager: " + obj + "<br/>");
+    /* registration */
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomains('registration'): " + obj.getDiscoveredDomains('registration') + "<br/>");
+    var gdd = obj.getDiscoveredDomains('registration');
+    for (var i=0;i<gdd.length;i++)  {
+        var handle = gdd.queryElementAt(i,Components.interfaces.nsIArray);
+        document.getElementById('foo').innerHTML += handle.queryElementAt(0,Components.interfaces.nsIVariant) + "<br/>";
     }
-};
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomainsCount('registration'): " + obj.getDiscoveredDomainsCount('registration') + "<br/>");    
+    /* browse */    
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomains('browse'): " + obj.getDiscoveredDomains('browse') + "<br/>");
+    var gdd = obj.getDiscoveredDomains('browse');
+    for (var i=0;i<gdd.length;i++)  {
+        var handle = gdd.queryElementAt(i,Components.interfaces.nsIArray);
+        document.getElementById('foo').innerHTML += handle.queryElementAt(0,Components.interfaces.nsIVariant) + "<br/>";
+    }
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomainsCount('browse'): " + obj.getDiscoveredDomainsCount('browse') + "<br/>");    
+    /* null */    
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomains('null'): " + obj.getDiscoveredDomains(null) + "<br/>");
+    var gdd = obj.getDiscoveredDomains(null);
+    for (var i=0;i<gdd.length;i++)  {
+        var handle = gdd.queryElementAt(i,Components.interfaces.nsIArray);
+        document.getElementById('foo').innerHTML += handle.queryElementAt(0,Components.interfaces.nsIVariant) + "<br/>";
+    }
+    document.getElementById('foo').innerHTML += ("getDiscoveredDomainsCount('null'): " + obj.getDiscoveredDomainsCount('null') + "<br/>");    
+
+
+    document.getElementById('foo').innerHTML += ("discoverServices: " + obj.discoverServices("_http._tcp.","intrinsicform.net.") + "<br/>");
+    document.getElementById('foo').innerHTML += ("discoverServices: " + obj.discoverServices("_http._tcp.",null) + "<br/>");
+    document.getElementById('foo').innerHTML += ("getDiscoveredServices: " + obj.getDiscoveredServices("_http._tcp.",null) + "<br/>");
+    var gds = obj.getDiscoveredServices("_http._tcp.",null);
+    for (var i=0;i<gds.length;i++)  {
+        // document.getElementById('foo').innerHTML += (gds.queryElementAt(i,Components.interfaces.nsIVariant));
+        document.getElementById('foo').innerHTML += (i + "&nbsp;");
+        var ds = gds.queryElementAt(i,Components.interfaces.nsIArray);
+        for (var j=0;j<ds.length;j++)   {
+            document.getElementById('foo').innerHTML += (j + "&nbsp;");
+            document.getElementById('foo').innerHTML += (ds.queryElementAt(j,Components.interfaces.nsIVariant) + "&nbsp;");
+        }
+        document.getElementById('foo').innerHTML += ("<br/>");
+    }
+    document.getElementById('foo').innerHTML += ("getDiscoveredServicesCount: " + obj.getDiscoveredServicesCount("_http._tcp.",null) + "<br/>");
+    var resolve = obj.resolveService("Twitter: AndrewTJ","_http._tcp","local.",3);
+    if (resolve.length>0)   {
+        for (var i=0;i<2;i++)  {
+            document.getElementById('foo').innerHTML += i + ": ";
+            document.getElementById('foo').innerHTML += resolve.queryElementAt(i,Components.interfaces.nsIVariant) + "<br/>";
+            document.getElementById('foo').innerHTML += "<br/>";
+        }
+        if (resolve.length>2)   {
+            var tr = resolve.queryElementAt(2,Components.interfaces.nsIArray);
+            for (var j=0;j<tr.length;j++)  {
+                var handle = tr.queryElementAt(j,Components.interfaces.nsIArray);
+                if (handle.length == 2)
+                {
+                    document.getElementById('foo').innerHTML += "{key:" + handle.queryElementAt(0,Components.interfaces.nsIVariant) + ",value:" + handle.queryElementAt(1,Components.interfaces.nsIVariant) + "}<br/>";
+                } else {
+                    document.getElementById('foo').innerHTML += "handle's a weird length or no length..." + handle.length + "<br/>";
+                }
+            }
+        }
+    }
+    var regid = obj.addService("BonjourFoxy", "_http._tcp", "andrew.tj.id.au.", 80, "path", "/projects/bonjourfoxy/", "local.");
+    var regid = obj.addService("Andrew TJ's Blog", "_http._tcp", "andrew.tj.id.au.", 80, "path", "/", "local.");
+    document.getElementById('foo').innerHTML += "addService returned: " + regid + "<br/>";
+    // document.getElementById('foo').innerHTML += ("<a href='#' onclick='obj.removeService(\""+regid+"\");'>removeService("+regid+")</a>");
+    document.getElementById('foo').innerHTML += ("<a href='#' onclick='go();'>go()</a>");
+}
 </script>
 </head>
 <body onload='go()'>
-<textarea id='foo'></textarea>
+<div id='foo'></div>
 </body>
 </html>

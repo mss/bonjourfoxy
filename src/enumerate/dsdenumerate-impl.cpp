@@ -179,28 +179,48 @@ void DNSSD_API CDSDENUMERATE::Callback (
         nsCOMPtr<IDSDMANAGER> dsdmanager;
         rv = servMan->GetServiceByContractID("@andrew.tj.id.au/dsdmanager;1", NS_GET_IID(IDSDMANAGER), getter_AddRefs(dsdmanager));
 
+
         nsCOMPtr<nsIMutableArray> array = do_CreateInstance(NS_ARRAY_CONTRACTID);
 
-        nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
-        oFlags->SetAsInt32(inFlags);
-        array->AppendElement(oFlags, PR_FALSE);
-        self->mLastFlags = inFlags;
+        self->mLastErrorcode = inErrorCode;        
+        if (inErrorCode == kDNSServiceErr_NoError)
+        {
 
-        nsCOMPtr<nsIWritableVariant> oInterfaceIndex = do_CreateInstance("@mozilla.org/variant;1");
-        oInterfaceIndex->SetAsInt32(inInterfaceIndex);
-        array->AppendElement(oInterfaceIndex, PR_FALSE);        
-        self->mLastInterface = inInterfaceIndex;
+            nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
+            if (inFlags & kDNSServiceFlagsAdd)  {
+                oFlags->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("add")));
+            } else {
+                oFlags->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("rmv")));
+            }
+            array->AppendElement(oFlags, PR_FALSE);
+            self->mLastFlags = inFlags;
+    
+            nsCOMPtr<nsIWritableVariant> oType = do_CreateInstance("@mozilla.org/variant;1");
+            if (self->mType == 2) {
+                oType->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("registration")));
+            } else {
+                oType->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("browse")));
+            }
+            array->AppendElement(oType, PR_FALSE);
 
-        nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
-        oErrorCode->SetAsInt32(inErrorCode);
-        array->AppendElement(oErrorCode, PR_FALSE);        
-        self->mLastErrorcode = inErrorCode;
-
-        nsCOMPtr<nsIWritableVariant> oReplyDomain = do_CreateInstance("@mozilla.org/variant;1");        
-        oReplyDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyDomain)) );
-        array->AppendElement(oReplyDomain, PR_FALSE);
-        self->mLastDomain = NS_ConvertUTF8toUTF16(inReplyDomain);        
-
+            nsCOMPtr<nsIWritableVariant> oInterfaceIndex = do_CreateInstance("@mozilla.org/variant;1");
+            oInterfaceIndex->SetAsInt32(inInterfaceIndex);
+            array->AppendElement(oInterfaceIndex, PR_FALSE);        
+            self->mLastInterface = inInterfaceIndex;
+        
+            nsCOMPtr<nsIWritableVariant> oReplyDomain = do_CreateInstance("@mozilla.org/variant;1");        
+            oReplyDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyDomain)) );
+            array->AppendElement(oReplyDomain, PR_FALSE);
+            self->mLastDomain = NS_ConvertUTF8toUTF16(inReplyDomain);        
+        } else {
+            self->mStatus=99;
+            if (self->mTimer)
+                self->mTimer->Cancel();
+            nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
+            oErrorCode->SetAsInt32(inErrorCode);
+            array->AppendElement(oErrorCode, PR_FALSE);        
+            DNSServiceRefDeallocate(self->mSdRef);
+        }            
     	dsdmanager->HandleEvent(NS_LITERAL_STRING("enumerate"),array);
     }
 }

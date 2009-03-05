@@ -7,7 +7,8 @@ var obj=Components.classes["@andrew.tj.id.au/dsdbrowse;1"].createInstance(); //.
 obj.QueryInterface(Components.interfaces.IDSDBROWSE);
 obj.interfaceIndex=0;
 obj.registrationType="_http._tcp";
-obj.registrationDomain="local.";
+// obj.registrationDomain="local.";
+obj.registrationDomain = null;
 document.write("Status: " + obj.status + "<br/>");
 obj.start();
 document.write("Status: " + obj.status + "<br/>");

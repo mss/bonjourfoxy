@@ -9,7 +9,20 @@ interface IDSDMANAGER : nsISupports
 {
 
     void handleEvent(in AString from, in nsIArray data);
-    
-    readonly attribute PRBool acceptEvents;
 
+    PRBool discoverServices(in AString regType, in AString regDomain);
+
+    nsIArray getDiscoveredDomains(in AString domainType);
+    
+    PRUint32 getDiscoveredDomainsCount(in AString domainType);
+    
+    nsIArray getDiscoveredServices(in AString regType, in AString regDomain);
+    
+    PRUint32 getDiscoveredServicesCount(in AString regType, in AString regDomain);
+    
+    nsIArray resolveService(in AString serviceName, in AString regType, in AString regDomain, in long timeout);
+    
+    AString addService(in AString serviceName, in AString regType, in AString targetHost, in long targetPort, in AString txtKey, in AString txtValue, in AString regDomain);
+    
+    void removeService(in AString identifier);
 };

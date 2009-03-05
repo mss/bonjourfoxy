@@ -59,9 +59,10 @@ protected:
   /* additional members */
   
   DNSServiceRef mSdRef;
-
+ 
   long mInterfaceIndex;
   nsString mName;
+  nsString mUsersName;
   nsString mRegistrationType;
   nsString mRegistrationDomain;
   long mLastFlags;
