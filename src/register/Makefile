@@ -10,7 +10,7 @@ MODU_O := dsd$(TARGET)-module.o
 ifeq ($(UNAME_S),darwin)
 	XR_PATH := /Developer/xulrunner-1.9.0.6
 	DEFINE := -DXP_UNIX -DXP_MACOSX
-	DSDM_PATH := ~atj/XP_Share/bonjourfoxy/src/manager
+	DSDM_PATH := ~atj/Projects/bonjourfoxy/src/manager
 	DYLIB_F := -Wl,-executable_path,$(XR_BIN)
 	DYLIB_O := dsd$(TARGET).dylib
 endif

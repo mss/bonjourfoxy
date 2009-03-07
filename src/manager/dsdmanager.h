@@ -39,8 +39,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
 
   NS_DECLARE_STATIC_IID_ACCESSOR(IDSDMANAGER_IID)
 
-  /* void handleEvent (in AString from, in nsIArray data); */
-  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, nsIArray *data) = 0;
+  /* void handleEvent (in AString from, in PRBool isError, in nsIArray data); */
+  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, PRBool isError, nsIArray *data) = 0;
 
   /* PRBool discoverServices (in AString regType, in AString regDomain); */
   NS_SCRIPTABLE NS_IMETHOD DiscoverServices(const nsAString & regType, const nsAString & regDomain, PRBool *_retval) = 0;
@@ -72,7 +72,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_IDSDMANAGER \
-  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, nsIArray *data); \
+  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, PRBool isError, nsIArray *data); \
   NS_SCRIPTABLE NS_IMETHOD DiscoverServices(const nsAString & regType, const nsAString & regDomain, PRBool *_retval); \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomains(const nsAString & domainType, nsIArray **_retval); \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval); \
@@ -84,7 +84,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_IDSDMANAGER(_to) \
-  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, nsIArray *data) { return _to HandleEvent(from, data); } \
+  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, PRBool isError, nsIArray *data) { return _to HandleEvent(from, isError, data); } \
   NS_SCRIPTABLE NS_IMETHOD DiscoverServices(const nsAString & regType, const nsAString & regDomain, PRBool *_retval) { return _to DiscoverServices(regType, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomains(const nsAString & domainType, nsIArray **_retval) { return _to GetDiscoveredDomains(domainType, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval) { return _to GetDiscoveredDomainsCount(domainType, _retval); } \
@@ -96,7 +96,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_IDSDMANAGER(_to) \
-  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, nsIArray *data) { return !_to ? NS_ERROR_NULL_POINTER : _to->HandleEvent(from, data); } \
+  NS_SCRIPTABLE NS_IMETHOD HandleEvent(const nsAString & from, PRBool isError, nsIArray *data) { return !_to ? NS_ERROR_NULL_POINTER : _to->HandleEvent(from, isError, data); } \
   NS_SCRIPTABLE NS_IMETHOD DiscoverServices(const nsAString & regType, const nsAString & regDomain, PRBool *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->DiscoverServices(regType, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomains(const nsAString & domainType, nsIArray **_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDiscoveredDomains(domainType, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDiscoveredDomainsCount(domainType, _retval); } \
@@ -138,8 +138,8 @@ _MYCLASS_::~_MYCLASS_()
   /* destructor code */
 }
 
-/* void handleEvent (in AString from, in nsIArray data); */
-NS_IMETHODIMP _MYCLASS_::HandleEvent(const nsAString & from, nsIArray *data)
+/* void handleEvent (in AString from, in PRBool isError, in nsIArray data); */
+NS_IMETHODIMP _MYCLASS_::HandleEvent(const nsAString & from, PRBool isError, nsIArray *data)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

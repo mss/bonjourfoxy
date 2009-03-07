@@ -3,6 +3,7 @@ docs/*
 *.xpi
 *.zip
 *.o
+*.so
 *~
 *.dylib
 *.DS_Store

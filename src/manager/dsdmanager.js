@@ -31,6 +31,7 @@ function DSDMANAGER() {
 // This is the implementation of your component.
 DSDMANAGER.prototype = {
   Log: function(message)   {
+    dump(message + "\n");
     var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
     aConsoleService.logStringMessage(message);
   },
@@ -156,8 +157,7 @@ DSDMANAGER.prototype = {
       var now = new Date();
       this.initTS=Math.round(now.getTime()/1000.0);
       this.stopTS=-1;
-      this.obj=Components.classes["@andrew.tj.id.au/dsdresolve;1"].getService();
-      this.obj.QueryInterface(Components.interfaces.IDSDRESOLVE);
+      this.obj=Components.classes["@andrew.tj.id.au/dsdresolve;1"].createInstance(Components.interfaces.IDSDRESOLVE);
       this.obj.interfaceIndex=0;
       this.timeout=5;
       this.targetHostname="";
@@ -227,12 +227,15 @@ DSDMANAGER.prototype = {
         var waitTime=Math.round(now.getTime()/1000.0)-this.ResolverInstances[id].initTS;
         if (waitTime>this.ResolverInstances[id].timeout)
         {
+            var errorArray = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
             var managerError = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
             managerError.setFromVariant("98");
-            arrayResolvedService.appendElement(managerError, 0);
+            errorArray.appendElement(managerError, 0);
             var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
             lastErrorcode.setFromVariant(this.ResolverInstances[id].obj.lastErrorcode);
-            arrayResolvedService.appendElement(lastErrorcode, 0);
+            errorArray.appendElement(lastErrorcode, 0);
+            
+            arrayResolvedService.appendElement(errorArray, 0);
             
             this.ResolverInstances[id].obj.stop();
             this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
@@ -297,148 +300,93 @@ DSDMANAGER.prototype = {
         delete this.RegistrationInstances[identifier];
     }
   },    
-  handleEvent: function(from,data)
+  handleEvent: function(from,isError,data)
   {
     var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    /* logging only */
-    var valuestext = "";
-    if (from != "resolve")
-    {
-        for (i=0;i<data.length;i++)
-        {
-            valuestext += "," + data.queryElementAt(i,Components.interfaces.nsIVariant);
-        }
-    } 
-    else 
-    {
-        if (from == "resolve")
-        {
-            for (i=0;i<4;i++)
-            {
-                valuestext += "," + data.queryElementAt(i,Components.interfaces.nsIVariant);
-            }
-        }
-        for (i=4;i<data.length;i++) 
-        {
-            handle = data.queryElementAt(i,Components.interfaces.nsIArray);
-            if (handle.length == 2)
-            {
-                valuestext += ",{key:" + handle.queryElementAt(0,Components.interfaces.nsIVariant) + ",value:" + handle.queryElementAt(1,Components.interfaces.nsIVariant) + "}";
-            }
-        }
-    }
-    this.Log("handleEvent(" + from + valuestext +")");
-    /* implementation */
-    if (from == "resolve")
-    {
-        var id = data.queryElementAt(0,Components.interfaces.nsIVariant);
-        var now = new Date();
-        this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
-        // this.Log("It took " + (this.ResolverInstances[id].stopTS - this.ResolverInstances[id].initTS) + " seconds to resolve...");
-        this.ResolverInstances[id].targetHostname = data.queryElementAt(2,Components.interfaces.nsIVariant);
-        this.ResolverInstances[id].targetPort = data.queryElementAt(3,Components.interfaces.nsIVariant);
-        if (data.length>3)
-        {
-            this.ResolverInstances[id].txtRecords = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-            for (i=4;i<data.length;i++)
-            {
-                var trHandle = data.queryElementAt(i,Components.interfaces.nsIArray);
-                if (trHandle.length == 2)
+    this.Log("handleEvent(" + from + "," + isError + ',' + data +")");
+    switch(from)    {
+        case "enumerate":
+            if (!isError)   {
+                flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
+                if (flags == 'add')
                 {
-                    var txtPair = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-                    var txtKey = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
-                    txtKey.setFromVariant(trHandle.queryElementAt(0,Components.interfaces.nsIVariant));
-                    var txtValue = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
-                    txtValue.setFromVariant(trHandle.queryElementAt(1,Components.interfaces.nsIVariant));
-                    txtPair.appendElement(txtKey,0);
-                    txtPair.appendElement(txtValue,0);
-                    this.ResolverInstances[id].txtRecords.appendElement(txtPair,0);
+                    var sql = this.DBConn.createStatement("INSERT INTO DiscoveredDomains VALUES (?1, ?2, ?3)");
+                } else {
+                    var sql = this.DBConn.createStatement("DELETE FROM DiscoveredDomains WHERE regdomain = ?1 AND domaintype = ?2 AND ifindex = ?3");
+                }
+                var interfaceIndex = data.queryElementAt(2,Components.interfaces.nsIVariant);
+                sql.bindInt32Parameter(2, interfaceIndex);
+                var regDomain = data.queryElementAt(3,Components.interfaces.nsIVariant);
+                sql.bindUTF8StringParameter(0, regDomain);
+                var domainType = data.queryElementAt(1,Components.interfaces.nsIVariant); 
+                sql.bindUTF8StringParameter(1, domainType);
+                sql.execute();
+                sql.reset();
+                // below should look like for eg: "dsd_addregistrationdomain"
+                observerService.notifyObservers(null,"dsd_" + flags + domainType + "domain",regDomain);
+            }
+        break;
+        case "browse":
+            if (!isError)   {
+                flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
+                if (flags == "add")
+                {
+                    var sql = this.DBConn.createStatement("INSERT INTO DiscoveredServices VALUES (?1, ?2, ?3, ?4)");
+                } else {
+                    var sql = this.DBConn.createStatement("DELETE FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename = ?3 AND ifindex = ?4");
+                }
+                var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
+                sql.bindUTF8StringParameter(0, regDomain);
+                var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
+                sql.bindUTF8StringParameter(1, regType);
+                var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
+                sql.bindUTF8StringParameter(2, serviceName);
+                var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
+                sql.bindInt32Parameter(3, interfaceIndex);
+                sql.execute();
+                sql.reset();
+                var observerData = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+                var vServiceName = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                vServiceName.setFromVariant(serviceName);
+                observerData.appendElement(vRegDomain,0);
+                var vRegDomain = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                vRegDomain.setFromVariant(regDomain);
+                observerData.appendElement(vRegDomain,0);
+                // below should look like for eg: "dsd_add_http._tcp."
+                observerService.notifyObservers(null,"dsd_" + flags + regType,observerData);
+            }
+        break;
+        case "resolve":
+            if (!isError)   {
+                var id = data.queryElementAt(0,Components.interfaces.nsIVariant);
+                var now = new Date();
+                this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
+                // this.Log("It took " + (this.ResolverInstances[id].stopTS - this.ResolverInstances[id].initTS) + " seconds to resolve...");
+                this.ResolverInstances[id].targetHostname = data.queryElementAt(2,Components.interfaces.nsIVariant);
+                this.ResolverInstances[id].targetPort = data.queryElementAt(3,Components.interfaces.nsIVariant);
+                if (data.length>3)
+                {
+                    this.ResolverInstances[id].txtRecords = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+                    for (i=4;i<data.length;i++)
+                    {
+                        var trHandle = data.queryElementAt(i,Components.interfaces.nsIArray);
+                        if (trHandle.length == 2)
+                        {
+                            var txtPair = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+                            var txtKey = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                            txtKey.setFromVariant(trHandle.queryElementAt(0,Components.interfaces.nsIVariant));
+                            var txtValue = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
+                            txtValue.setFromVariant(trHandle.queryElementAt(1,Components.interfaces.nsIVariant));
+                            txtPair.appendElement(txtKey,0);
+                            txtPair.appendElement(txtValue,0);
+                            this.ResolverInstances[id].txtRecords.appendElement(txtPair,0);
+                        }
+                    }
                 }
             }
-        }
-    }
-    else if (from == "enumerate")
-    {
-        flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
-        if (flags == 'add')
-        {
-            var sqlAddDiscoveredDomain = this.DBConn.createStatement("INSERT INTO DiscoveredDomains VALUES (?1, ?2, ?3)");
-            var interfaceIndex = data.queryElementAt(2,Components.interfaces.nsIVariant);
-            sqlAddDiscoveredDomain.bindInt32Parameter(2, interfaceIndex);
-            var regDomain = data.queryElementAt(3,Components.interfaces.nsIVariant);
-            sqlAddDiscoveredDomain.bindUTF8StringParameter(0, regDomain);
-            var domainType = data.queryElementAt(1,Components.interfaces.nsIVariant); 
-            sqlAddDiscoveredDomain.bindUTF8StringParameter(1, domainType);
-            try
-            {
-                sqlAddDiscoveredDomain.execute();
-            } 
-            catch (e if this.DBConn.lastError == 19)
-            {
-                this.Log("Record for DiscoveredDomains (" + regDomain + "," + domainType + ") already exists");
-            }
-            sqlAddDiscoveredDomain.reset();
-            observerService.notifyObservers(null,"dsd_add",regDomain);
-        } else if (flags == "rmv")
-        {
-            observerService.notifyObservers(null,"DSD","domainDiscovered");
-            var sqlRmvDiscoveredDomain = this.DBConn.createStatement("DELETE FROM DiscoveredDomains WHERE regdomain = ?1 AND domaintype = ?2 AND ifindex = ?3");
-            var interfaceIndex = data.queryElementAt(2,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredDomain.bindInt32Parameter(2, interfaceIndex);
-            var regDomain = data.queryElementAt(3,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredDomain.bindUTF8StringParameter(0, regDomain);
-            var domainType = data.queryElementAt(1,Components.interfaces.nsIVariant); 
-            sqlRmvDiscoveredDomain.bindUTF8StringParameter(1, domainType);
-            sqlRmvDiscoveredDomain.execute();
-            sqlRmvDiscoveredDomain.reset();
-            observerService.notifyObservers(null,"dsd_rdd",regDomain);
-        }        
-    }
-    else if (from == "browse")
-    {
-        flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
-        if (flags == 'add')
-        {
-            var sqlAddDiscoveredService = this.DBConn.createStatement("INSERT INTO DiscoveredServices VALUES (?1, ?2, ?3, ?4)");
-            var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
-            sqlAddDiscoveredService.bindUTF8StringParameter(0, regDomain);
-            var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
-            sqlAddDiscoveredService.bindUTF8StringParameter(1, regType);
-            var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
-            sqlAddDiscoveredService.bindUTF8StringParameter(2, serviceName);
-            var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant); 
-            sqlAddDiscoveredService.bindInt32Parameter(3,interfaceIndex);
-            try
-            {
-                sqlAddDiscoveredService.execute();
-            }
-            // this may not be necessary since we bother to capture the interfaceIndex now
-            catch (e if this.DBConn.lastError == 19)
-            {
-                this.Log("Record for DiscoveredServices (" + regDomain + "," + regType + "," + serviceName + ") already exists");
-            } 
-            sqlAddDiscoveredService.reset();
-            observerService.notifyObservers(null,"dsd_ads",regType);
-        }
-        else if (flags == "rmv")
-        {
-            var sqlRmvDiscoveredService = this.DBConn.createStatement("DELETE FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename = ?3 AND ifindex = ?4");
-            var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredService.bindUTF8StringParameter(0, regDomain);
-            var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredService.bindUTF8StringParameter(1, regType);
-            var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredService.bindUTF8StringParameter(2, serviceName);
-            var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
-            sqlRmvDiscoveredService.bindInt32Parameter(3, interfaceIndex);
-            sqlRmvDiscoveredService.execute();
-            sqlRmvDiscoveredService.reset();
-            observerService.notifyObservers(null,"dsd_rds",regType);
-        }
-        else
-        {
-            this.Log("Browse Service Recieved Error No " + flags);
-        }
+        break;                    
+        default:
+            this.Log("handleEvent - didn't recognise " + from);
     }
   },
   // for nsISupports

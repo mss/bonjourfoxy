@@ -8,7 +8,7 @@
 interface IDSDMANAGER : nsISupports
 {
 
-    void handleEvent(in AString from, in nsIArray data);
+    void handleEvent(in AString from, in PRBool isError, in nsIArray data);
 
     PRBool discoverServices(in AString regType, in AString regDomain);
 

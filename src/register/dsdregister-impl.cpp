@@ -81,7 +81,7 @@ NS_IMETHODIMP CDSDREGISTER::Start()
 	if (err != kDNSServiceErr_NoError) {
         mLastErrorcode = err;
         mStatus = 99;
-		// printf("%d\n", err);
+		//printf("%d\n", err);
         return NS_ERROR_FAILURE;
 	}
 	mStatus = 1;
@@ -95,8 +95,8 @@ NS_IMETHODIMP CDSDREGISTER::Stop()
     mStatus = 0;
     if (mTimer)
       mTimer->Cancel();
-    if (mSdRef)
-      DNSServiceRefDeallocate(mSdRef);
+/*    if (mSdRef)
+      DNSServiceRefDeallocate(mSdRef);  */
     return NS_OK;
 }
 
@@ -260,7 +260,7 @@ void DNSSD_API CDSDREGISTER::Callback(
 		const char *			inRegDomain,
 		void *					inContext )
 {
-    // printf("CDSDREGISTER::Callback()\n");
+    //printf("CDSDREGISTER::Callback()\n");
 	CDSDREGISTER * self;
 	self = reinterpret_cast <CDSDREGISTER*>( inContext );
 	nsCOMPtr<nsIServiceManager> servMan;
@@ -299,6 +299,8 @@ void DNSSD_API CDSDREGISTER::Callback(
             oRegDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inRegDomain)) );
             array->AppendElement(oRegDomain, PR_FALSE);
             self->mLastDomain = NS_ConvertUTF8toUTF16(inRegDomain);  
+
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("register"),PR_FALSE,array);
             
         } else {
 
@@ -310,16 +312,15 @@ void DNSSD_API CDSDREGISTER::Callback(
             self->mStatus = 99;
             if (self->mTimer)
                 self->mTimer->Cancel();
-            DNSServiceRefDeallocate(self->mSdRef);
-
+            // DNSServiceRefDeallocate(self->mSdRef);
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("register"),PR_TRUE,array);
         }
-    	dsdmanager->HandleEvent(NS_LITERAL_STRING("register"),array);
     }
 }
 
 void CDSDREGISTER::PollSelect(void *inContext)
 {
-    // printf("CDSDREGISTER::PollSelect()\n");
+    //printf("CDSDREGISTER::PollSelect()\n");
 	CDSDREGISTER * self;
 	self = reinterpret_cast <CDSDREGISTER*>( inContext );
 	struct timeval tv;
@@ -338,24 +339,24 @@ void CDSDREGISTER::PollSelect(void *inContext)
 
 	if (result > 0)
 		{
-		// printf("Results: %d\n", result);
+		//printf("Results: %d\n", result);
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if (self->mSdRef && FD_ISSET(dns_sd_fd , &readfds)) {
 			err = DNSServiceProcessResult(self->mSdRef);
 			}
         /*
 		if (err) {
-			// printf("DNSServiceProcessResult returned %d\n", err);
+			//printf("DNSServiceProcessResult returned %d\n", err);
 			}
 		*/
 		}
 	else if (result == 0)
 	    {
-		// printf("No Results\n");
+		//printf("No Results\n");
 	    }
 	else
 		{		  
-		// printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
+		//printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
 		if (errno != EINTR) self->mStatus = 99;
 		}
     if (self->mStatus != 1)    {
@@ -367,7 +368,7 @@ void CDSDREGISTER::PollSelect(void *inContext)
 
 nsresult CDSDREGISTER::StartTimer()
 {
-    // printf("CDSDREGISTER::StartTimer()\n");
+    //printf("CDSDREGISTER::StartTimer()\n");
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
@@ -378,7 +379,7 @@ nsresult CDSDREGISTER::StartTimer()
 
 void CDSDREGISTER::TimeoutHandler(nsITimer *aTimer, void *aClosure)
 {
-    // printf("CDSDREGISTER::TimeoutHandler()\n");
+    //printf("CDSDREGISTER::TimeoutHandler()\n");
     CDSDREGISTER *self = reinterpret_cast<CDSDREGISTER*>(aClosure);
     if (!self) {
         NS_ERROR("no self\n");

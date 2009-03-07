@@ -73,7 +73,7 @@ NS_IMETHODIMP CDSDBROWSE::Start()
 /* void stop (); */
 NS_IMETHODIMP CDSDBROWSE::Stop()
 {
-    // printf("CDSDBROWSE::Stop()\n");
+    //printf("CDSDBROWSE::Stop()\n");
     mStatus = 2;
     return NS_OK;
 }
@@ -173,7 +173,7 @@ void DNSSD_API CDSDBROWSE::Callback(
 	const char 			   *inReplyDomain,
 	void 				*	inContext)
 {
-  // printf("CDSDBROWSE::CallBack()\n");
+  //printf("CDSDBROWSE::CallBack()\n");
 	CDSDBROWSE * self;
 	self = reinterpret_cast <CDSDBROWSE*>( inContext );
 	nsCOMPtr<nsIServiceManager> servMan;
@@ -225,7 +225,7 @@ void DNSSD_API CDSDBROWSE::Callback(
             oReplyDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyDomain)) );
             array->AppendElement(oReplyDomain, PR_FALSE);
             self->mLastDomain = NS_ConvertUTF8toUTF16(inReplyDomain); 
-        	
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("browse"),PR_FALSE,array);    	
         } else {       
             self->mStatus = 99;
             if (self->mTimer)
@@ -233,16 +233,15 @@ void DNSSD_API CDSDBROWSE::Callback(
             nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
             oErrorCode->SetAsInt32(inErrorCode);
             array->AppendElement(oErrorCode, PR_FALSE);        
-            DNSServiceRefDeallocate(self->mSdRef);
-
+            // DNSServiceRefDeallocate(self->mSdRef);
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("browse"),PR_TRUE,array);
         }
-    	dsdmanager->HandleEvent(NS_LITERAL_STRING("browse"),array);
 	}
 }
 
 void CDSDBROWSE::PollSelect(void *inContext)
 {
-    // printf("CDSDBROWSE::PollSelect()\n");
+    //printf("CDSDBROWSE::PollSelect()\n");
 	CDSDBROWSE * self;
 	self = reinterpret_cast <CDSDBROWSE*>( inContext );
 	struct timeval tv;
@@ -261,28 +260,28 @@ void CDSDBROWSE::PollSelect(void *inContext)
 
 	if (result > 0)
 		{
-		// printf("Results: %d\n", result);
+		//printf("Results: %d\n", result);
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if (self->mSdRef && FD_ISSET(dns_sd_fd , &readfds)) {
 			err = DNSServiceProcessResult(self->mSdRef);
 			}
         /*
 		if (err) {
-			// printf("DNSServiceProcessResult returned %d\n", err);
+			//printf("DNSServiceProcessResult returned %d\n", err);
 			}
 		*/
 		}
 	else if (result == 0)
 	    {
-		// printf("No Results\n");
+		//printf("No Results\n");
 	    }
 	else
 		{		  
-		// printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
+		//printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
 		if (errno != EINTR) self->mStatus = 99;
 		}
     if (self->mStatus != 1)    {
-        DNSServiceRefDeallocate(self->mSdRef);
+        // DNSServiceRefDeallocate(self->mSdRef);
 		if (mTimer)
 			mTimer->Cancel();
     }
@@ -290,7 +289,7 @@ void CDSDBROWSE::PollSelect(void *inContext)
 
 nsresult CDSDBROWSE::StartTimer()
 {
-    // printf("CDSDBROWSE::StartTimer()\n");
+    //printf("CDSDBROWSE::StartTimer()\n");
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
@@ -301,7 +300,7 @@ nsresult CDSDBROWSE::StartTimer()
 
 void CDSDBROWSE::TimeoutHandler(nsITimer *aTimer, void *aClosure)
 {
-    // printf("CDSDBROWSE::TimeoutHandler()\n");
+    //printf("CDSDBROWSE::TimeoutHandler()\n");
     CDSDBROWSE *self = reinterpret_cast<CDSDBROWSE*>(aClosure);
     if (!self) {
         NS_ERROR("no self\n");

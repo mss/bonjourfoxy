@@ -3,9 +3,16 @@
  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>bonjourfoxy@andrew.tj.id.au</em:id>
-    <em:name>Bonjour Foxy</em:name>
-    <em:version>0.2.2</em:version>
+    <em:version>0.3.0</em:version>
+    <em:type>2</em:type>
+
+    <em:optionsURL>chrome://bonjourfoxy/content/options.xul</em:optionsURL>
+
+    <em:name>BonjourFoxy</em:name>
+    <em:description>Bonjour for Firefox</em:description> 
     <em:creator>Andrew Tunnell-Jones</em:creator>
+    <em:homepageURL>http://andrew.tj.id.au/projects/bonjourfoxy</em:homepageURL>
+
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- firefox -->
@@ -13,5 +20,6 @@
         <em:maxVersion>3.0.*</em:maxVersion>
       </Description>
     </em:targetApplication>
+
   </Description>
 </RDF>

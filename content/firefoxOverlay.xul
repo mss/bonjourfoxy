@@ -4,9 +4,21 @@
 <overlay id="bonjourfoxy-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script src="overlay.js"/>
+  <script src="shared.js"/>
   <stringbundleset id="stringbundleset">
     <stringbundle id="bonjourfoxy-strings" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
   </stringbundleset>
+
+  <menubar id="main-menubar">
+    <menu label="Bonjour" insertbefore="tools-menu" onpopupshowing="menuAddServices();">
+    <menupopup id="bonjourMenuPopup">
+        <menuitem id="key_openEmptySidebar" label="&bonjourfoxyMenuSidebar.label;" observes="viewBonjourServices"
+              oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
+        <menuitem label="Preferences" disabled="true" />
+        <menuseparator/>
+    </menupopup>
+    </menu>
+  </menubar>
 
   <menupopup id="viewSidebarMenu">
     <menuitem id="key_openEmptySidebar" label="&bonjourfoxy.label;" observes="viewBonjourServices"
@@ -23,7 +35,6 @@
 
   <broadcasterset id="mainBroadcasterSet"> 
     <broadcaster id="viewBonjourServices"
-                 label="&bonjourfoxy.label;"
                  autoCheck="false"
                  type="checkbox"
                  group="sidebar"

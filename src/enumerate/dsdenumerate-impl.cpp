@@ -28,7 +28,7 @@ NS_IMPL_ISUPPORTS1(CDSDENUMERATE, IDSDENUMERATE)
 CDSDENUMERATE::CDSDENUMERATE()
 {
   /* member initializers and constructor code */
-  // printf("CDSDENUMERATE::CDSDENUMERATE()\n");
+  //printf("CDSDENUMERATE::CDSDENUMERATE()\n");
   mSdRef = NULL;
   mType = 0;
   mInterfaceIndex = NULL;
@@ -42,7 +42,7 @@ CDSDENUMERATE::CDSDENUMERATE()
 CDSDENUMERATE::~CDSDENUMERATE()
 {
   /* destructor code */
-  // printf("CDSDENUMERATE::~CDSDENUMERATE()\n");
+  //printf("CDSDENUMERATE::~CDSDENUMERATE()\n");
   mStatus = 99;
   if (mTimer)
     mTimer->Cancel();
@@ -53,7 +53,7 @@ CDSDENUMERATE::~CDSDENUMERATE()
 /* void start (); */
 NS_IMETHODIMP CDSDENUMERATE::Start()
 {
-  // printf("CDSDENUMERATE::Start()\n");
+  //printf("CDSDENUMERATE::Start()\n");
     DNSServiceErrorType err = kDNSServiceErr_Unknown;
     if (mType == 0) {
         return NS_ERROR_INVALID_ARG;
@@ -79,7 +79,7 @@ NS_IMETHODIMP CDSDENUMERATE::Start()
 /* void stop (); */
 NS_IMETHODIMP CDSDENUMERATE::Stop()
 {
-    // printf("CDSDENUMERATE::Stop()\n");
+    //printf("CDSDENUMERATE::Stop()\n");
     mStatus = 2;
     return NS_OK;
 }
@@ -87,13 +87,13 @@ NS_IMETHODIMP CDSDENUMERATE::Stop()
 /* attribute long type; */
 NS_IMETHODIMP CDSDENUMERATE::GetType(PRInt32 *aType)
 {
-  // printf("CDSDENUMERATE::GetType()\n");
+  //printf("CDSDENUMERATE::GetType()\n");
     *aType = mType;
     return NS_OK;
 }
 NS_IMETHODIMP CDSDENUMERATE::SetType(PRInt32 aType)
 {
-  // printf("CDSDENUMERATE::SetType()\n");
+  //printf("CDSDENUMERATE::SetType()\n");
     if (aType == 1) {
         mType = 1;
     } else if (aType == 2) {
@@ -107,13 +107,13 @@ NS_IMETHODIMP CDSDENUMERATE::SetType(PRInt32 aType)
 /* attribute long interfaceIndex; */
 NS_IMETHODIMP CDSDENUMERATE::GetInterfaceIndex(PRInt32 *aInterfaceIndex)
 {
-  // printf("CDSDENUMERATE::GetInterfaceIndex()\n");
+  //printf("CDSDENUMERATE::GetInterfaceIndex()\n");
     *aInterfaceIndex = mInterfaceIndex;
     return NS_OK;
 }
 NS_IMETHODIMP CDSDENUMERATE::SetInterfaceIndex(PRInt32 aInterfaceIndex)
 {
-  // printf("CDSDENUMERATE::SetInterfaceIndex()\n");
+  //printf("CDSDENUMERATE::SetInterfaceIndex()\n");
     mInterfaceIndex = aInterfaceIndex;
     return NS_OK;
 }
@@ -121,7 +121,7 @@ NS_IMETHODIMP CDSDENUMERATE::SetInterfaceIndex(PRInt32 aInterfaceIndex)
 /* readonly attribute long lastFlags; */
 NS_IMETHODIMP CDSDENUMERATE::GetLastFlags(PRInt32 *aLastFlags)
 {
-  // printf("CDSDENUMERATE::GetLastFlags()\n");
+  //printf("CDSDENUMERATE::GetLastFlags()\n");
     *aLastFlags = mLastFlags;
     return NS_OK;
 }
@@ -129,7 +129,7 @@ NS_IMETHODIMP CDSDENUMERATE::GetLastFlags(PRInt32 *aLastFlags)
 /* readonly attribute long lastInterface; */
 NS_IMETHODIMP CDSDENUMERATE::GetLastInterface(PRInt32 *aLastInterface)
 {
-  // printf("CDSDENUMERATE::GetLastInterface()\n");
+  //printf("CDSDENUMERATE::GetLastInterface()\n");
     *aLastInterface = mLastInterface;
     return NS_OK;
 }
@@ -137,7 +137,7 @@ NS_IMETHODIMP CDSDENUMERATE::GetLastInterface(PRInt32 *aLastInterface)
 /* readonly attribute long lastErrorcode; */
 NS_IMETHODIMP CDSDENUMERATE::GetLastErrorcode(PRInt32 *aLastErrorcode)
 {
-  // printf("CDSDENUMERATE::GetLastErrorcode()\n");
+  //printf("CDSDENUMERATE::GetLastErrorcode()\n");
     *aLastErrorcode = mLastErrorcode;
     return NS_OK;
 }
@@ -145,7 +145,7 @@ NS_IMETHODIMP CDSDENUMERATE::GetLastErrorcode(PRInt32 *aLastErrorcode)
 /* readonly attribute AString lastDomain; */
 NS_IMETHODIMP CDSDENUMERATE::GetLastDomain(nsAString & aLastDomain)
 {
-  // printf("CDSDENUMERATE::GetLastDomain()\n");
+  //printf("CDSDENUMERATE::GetLastDomain()\n");
     aLastDomain = mLastDomain;
     return NS_OK;
 }
@@ -153,7 +153,7 @@ NS_IMETHODIMP CDSDENUMERATE::GetLastDomain(nsAString & aLastDomain)
 /* readonly attribute long status; */
 NS_IMETHODIMP CDSDENUMERATE::GetStatus(PRInt32 *aStatus)
 {
-  // printf("CDSDENUMERATE::GetStatus()\n");
+  //printf("CDSDENUMERATE::GetStatus()\n");
     *aStatus = mStatus;
     return NS_OK;
 }
@@ -166,11 +166,9 @@ void DNSSD_API CDSDENUMERATE::Callback (
     const char * inReplyDomain,
     void * inContext)
 {
-  // printf("CDSDENUMERATE::Callback()\n");
+  //printf("CDSDENUMERATE::Callback()\n");
 	CDSDENUMERATE * self;
 	self = reinterpret_cast <CDSDENUMERATE*>( inContext );
-	// printf("HAPPY!\n");
-	// printf("%s\n", inReplyDomain);
 	nsCOMPtr<nsIServiceManager> servMan;
     nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
     if (NS_FAILED(rv)) {
@@ -212,6 +210,8 @@ void DNSSD_API CDSDENUMERATE::Callback (
             oReplyDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyDomain)) );
             array->AppendElement(oReplyDomain, PR_FALSE);
             self->mLastDomain = NS_ConvertUTF8toUTF16(inReplyDomain);        
+            
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("enumerate"),PR_FALSE,array);
         } else {
             self->mStatus=99;
             if (self->mTimer)
@@ -219,15 +219,15 @@ void DNSSD_API CDSDENUMERATE::Callback (
             nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
             oErrorCode->SetAsInt32(inErrorCode);
             array->AppendElement(oErrorCode, PR_FALSE);        
-            DNSServiceRefDeallocate(self->mSdRef);
+            // DNSServiceRefDeallocate(self->mSdRef);
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("enumerate"),PR_TRUE,array);
         }            
-    	dsdmanager->HandleEvent(NS_LITERAL_STRING("enumerate"),array);
     }
 }
 
 void CDSDENUMERATE::PollSelect(void *inContext)
 {
-  // printf("CDSDENUMERATE::PollSelect()\n");
+  //printf("CDSDENUMERATE::PollSelect()\n");
 	CDSDENUMERATE * self;
 	self = reinterpret_cast <CDSDENUMERATE*>( inContext );
 	struct timeval tv;
@@ -246,28 +246,28 @@ void CDSDENUMERATE::PollSelect(void *inContext)
 
 	if (result > 0)
 		{
-		// printf("Results: %d\n", result);
+		//printf("Results: %d\n", result);
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if (self->mSdRef && FD_ISSET(dns_sd_fd , &readfds)) {
 			err = DNSServiceProcessResult(self->mSdRef);
 			}
         /*
 		if (err) {
-			// printf("DNSServiceProcessResult returned %d\n", err);
+			//printf("DNSServiceProcessResult returned %d\n", err);
 			}
 		*/
 		}
 	else if (result == 0)
 	    {
-		// printf("No Results\n");
+		//printf("No Results\n");
 	    }
 	else
 		{		  
-		// printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
+		//printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
 		if (errno != EINTR) self->mStatus = 99;
 		}
     if (self->mStatus != 1)    {
-        DNSServiceRefDeallocate(self->mSdRef);
+        // DNSServiceRefDeallocate(self->mSdRef);
 		if (mTimer)
 			mTimer->Cancel();
     }
@@ -275,7 +275,7 @@ void CDSDENUMERATE::PollSelect(void *inContext)
 
 nsresult CDSDENUMERATE::StartTimer()
 {
-  // printf("CDSDENUMERATE::StartTimer()\n");
+  //printf("CDSDENUMERATE::StartTimer()\n");
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
@@ -286,7 +286,7 @@ nsresult CDSDENUMERATE::StartTimer()
 
 void CDSDENUMERATE::TimeoutHandler(nsITimer *aTimer, void *aClosure)
 {
-  // printf("CDSDENUMERATE::TimeoutHandler()\n");
+  //printf("CDSDENUMERATE::TimeoutHandler()\n");
     CDSDENUMERATE *self = reinterpret_cast<CDSDENUMERATE*>(aClosure);
     if (!self) {
         NS_ERROR("no self\n");

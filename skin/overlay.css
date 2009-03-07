@@ -19,3 +19,7 @@
 {
   -moz-image-region: rect(24px 40px 40px 24px);
 }
+#serviceListLB
+{
+    color: blue;
+}

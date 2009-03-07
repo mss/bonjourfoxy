@@ -54,8 +54,8 @@ CDSDRESOLVE::~CDSDRESOLVE()
   mStatus = 99;
   if (mTimer)
     mTimer->Cancel();
-  if (mSdRef)
-    DNSServiceRefDeallocate(mSdRef); 
+/*  if (mSdRef)
+    DNSServiceRefDeallocate(mSdRef);  */
 }
 
 /* void start (); */
@@ -75,7 +75,6 @@ NS_IMETHODIMP CDSDRESOLVE::Start()
 	if (err != kDNSServiceErr_NoError) {
         mLastErrorcode = err;
         mStatus = 99;
-		printf("%d\n", err);
         return NS_ERROR_FAILURE;
 	}
 	mStatus = 1;
@@ -89,8 +88,8 @@ NS_IMETHODIMP CDSDRESOLVE::Stop()
     mStatus = 0;
     if (mTimer)
       mTimer->Cancel();
-    if (mSdRef)
-      DNSServiceRefDeallocate(mSdRef);
+    // if (mSdRef)
+      // DNSServiceRefDeallocate(mSdRef);
     return NS_OK;
 }
 
@@ -224,12 +223,9 @@ void DNSSD_API CDSDRESOLVE::Callback(
 		const char *			inTxtRecord,
 		void *					inContext )
 {
-    // printf("CDSDRESOLVE::Callback()\n");
+    //printf("CDSDRESOLVE::Callback()\n");
 	CDSDRESOLVE * self;
 	self = reinterpret_cast <CDSDRESOLVE*>( inContext );
-	// const unsigned char *tTxtRecord = inTxtRecord;
-	// printf("HAPPY!\n");
-	// printf("%s\n", inReplyDomain);
 	nsCOMPtr<nsIServiceManager> servMan;
     nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
     if (NS_FAILED(rv)) {
@@ -284,7 +280,7 @@ void DNSSD_API CDSDRESOLVE::Callback(
     		while (TXTRecordGetItemAtIndex(inTxtLen,inTxtRecord,index++,256,key, &valueLen,
     		&voidValue) == kDNSServiceErr_NoError) 
             {
-    			// printf("Key: %s Value: %s\n", key, voidValue);
+    			//printf("Key: %s Value: %s\n", key, voidValue);
     			
     			nsCOMPtr<nsIMutableArray> oTxtRecord = do_CreateInstance(NS_ARRAY_CONTRACTID);
     			
@@ -302,8 +298,6 @@ void DNSSD_API CDSDRESOLVE::Callback(
     			nsCOMPtr<nsIWritableVariant> outValue = do_CreateInstance("@mozilla.org/variant;1");        
     			outValue->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(tValue)) );
 
-				free(tValue);
-
     			oTxtRecord->AppendElement(outKey, PR_FALSE);
     			oTxtRecord->AppendElement(outValue, PR_FALSE);
     			
@@ -313,6 +307,7 @@ void DNSSD_API CDSDRESOLVE::Callback(
             if (self->mTimer)
                 self->mTimer->Cancel();
             DNSServiceRefDeallocate(self->mSdRef);                
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("resolve"),PR_FALSE,array);
         }
         else
         {
@@ -324,14 +319,14 @@ void DNSSD_API CDSDRESOLVE::Callback(
             array->AppendElement(oErrorCode, PR_FALSE);        
             self->mLastErrorcode = inErrorCode;
             DNSServiceRefDeallocate(self->mSdRef);
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("resolve"),PR_TRUE,array);
         }
-    	dsdmanager->HandleEvent(NS_LITERAL_STRING("resolve"),array);
     }
 }
 
 void CDSDRESOLVE::PollSelect(void *inContext)
 {
-    // printf("CDSDRESOLVE::PollSelect()\n");
+    //printf("CDSDRESOLVE::PollSelect()\n");
 	CDSDRESOLVE * self;
 	self = reinterpret_cast <CDSDRESOLVE*>( inContext );
 	struct timeval tv;
@@ -350,28 +345,28 @@ void CDSDRESOLVE::PollSelect(void *inContext)
 
 	if (result > 0)
 		{
-		// printf("Results: %d\n", result);
+		//printf("Results: %d\n", result);
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if (self->mSdRef && FD_ISSET(dns_sd_fd , &readfds)) {
 			err = DNSServiceProcessResult(self->mSdRef);
 			}
         /*
 		if (err) {
-			// printf("DNSServiceProcessResult returned %d\n", err);
+			//printf("DNSServiceProcessResult returned %d\n", err);
 			}
 		*/
 		}
 	else if (result == 0)
 	    {
-		// printf("No Results\n");
+		//printf("No Results\n");
 	    }
 	else
 		{		  
-		// printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
+		//printf("select() returned %d errno %d %s\n", result, errno, strerror(errno));
 		if (errno != EINTR) self->mStatus = 99;
 		}
     if (self->mStatus != 1)    {
-        DNSServiceRefDeallocate(self->mSdRef);
+        // DNSServiceRefDeallocate(self->mSdRef);
 		if (mTimer)
 			mTimer->Cancel();
     }
@@ -379,7 +374,7 @@ void CDSDRESOLVE::PollSelect(void *inContext)
 
 nsresult CDSDRESOLVE::StartTimer()
 {
-    // printf("CDSDRESOLVE::StartTimer()\n");
+    //printf("CDSDRESOLVE::StartTimer()\n");
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
@@ -390,7 +385,7 @@ nsresult CDSDRESOLVE::StartTimer()
 
 void CDSDRESOLVE::TimeoutHandler(nsITimer *aTimer, void *aClosure)
 {
-    // printf("CDSDRESOLVE::TimeoutHandler()\n");
+    //printf("CDSDRESOLVE::TimeoutHandler()\n");
     CDSDRESOLVE *self = reinterpret_cast<CDSDRESOLVE*>(aClosure);
     if (!self) {
         NS_ERROR("no self\n");

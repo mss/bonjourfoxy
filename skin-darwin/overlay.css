@@ -1,0 +1,17 @@
+#bonjourfoxy-hello
+{
+  color: red ! important;
+}
+#bonjourfoxy-toolbar-button
+{
+  list-style-image: url("chrome://bonjourfoxy/skin/toolbar-button.png");
+  -moz-image-region: rect(0px 36px 23px 0px);
+}
+#bonjourfoxy-toolbar-button[disabled="true"]
+{
+  -moz-image-region: rect(23px 36px 46px 0px);
+}
+#bonjourfoxy-toolbar-button:hover:active
+{
+  -moz-image-region: rect(46px 36px 69px 0px);
+}
