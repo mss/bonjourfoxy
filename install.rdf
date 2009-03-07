@@ -4,7 +4,6 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>bonjourfoxy@andrew.tj.id.au</em:id>
     <em:version>0.3.0</em:version>
-    <em:type>2</em:type>
 
     <em:optionsURL>chrome://bonjourfoxy/content/options.xul</em:optionsURL>
 

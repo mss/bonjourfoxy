@@ -15,3 +15,4 @@ docs/*
 *.sln
 ffd.sh
 *.swp
+components/*
