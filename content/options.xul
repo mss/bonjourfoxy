@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+ 
+<prefwindow id="BrowserPreferences"
+     title="BonjourFoxy Options"
+     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+     xmlns:html="http://www.w3.org/1999/xhtml"
+     buttons="accept">
+ 
+<prefpane id="bonjourfoxy-prefpane" label="BonjourFoxy Preferences">
+  <preferences>
+    <preference id="pref_alerts" name="extensions.bonjourfoxy.alerts" instantApply="true" type="bool"/>
+    <preference id="pref_target" name="extensions.bonjourfoxy.target" instantApply="true" type="string"/>
+  </preferences>
+ 
+<html:h2 flex="1" style="text-align: center;">BonjourFoxy Preferences</html:h2>
+<groupbox flex="1">
+ <vbox flex="1">
+  <hbox>
+      <label control="alerts" value="Discovery notifications:"/>
+      <spacer flex="1"/>
+      <checkbox preference="pref_alerts" id="alerts"/>
+  </hbox>
+  <hbox flex="1">
+      <label control="target" value="Open links in:"/>
+      <spacer flex="1"/>
+      <menulist preference="pref_target" id="target">
+        <menupopup>
+            <menuitem label="Current Page" value="current"/>
+            <menuitem label="New Tab" value="tab"/>
+            <menuitem label="New Window" value="window" />
+        </menupopup>
+      </menulist>
+  </hbox>
+ </vbox>
+</groupbox>
+<hbox style='padding-bottom: 30px;'><spacer flex="1"/><description>Settings apply instantly</description><spacer flex="1"/></hbox>
+</prefpane>
+ 
+</prefwindow>

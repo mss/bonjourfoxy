@@ -30,15 +30,48 @@ function DSDMANAGER() {
 
 // This is the implementation of your component.
 DSDMANAGER.prototype = {
-  Log: function(message)   {
-    dump(message + "\n");
-    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-    aConsoleService.logStringMessage(message);
+  log: function(message)   {
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                    .getService(Components.interfaces.nsIPrefService);
+    prefs = prefs.getBranch("extensions.dsd.");
+    if (prefs.getBoolPref("logToErrorConsole"))  {
+        var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+        aConsoleService.logStringMessage(message);
+    }
+  },
+  validServiceName: function(input) {
+    var escapedStr = encodeURI(input)
+    if (escapedStr.indexOf("%") != -1) {
+        var count = escapedStr.split("%").length - 1
+        if (count == 0) count++
+        var tmp = escapedStr.length - (count * 3)
+        count = count + tmp
+    } else {
+        count = escapedStr.length
+    }
+    if (count>63)   {
+        return false;
+    } else {
+        return true;
+    }
+  },
+  validRegistrationType: function(input)   {
+    var expression = "^_[a-zA-Z0-9\-]{1,14}\._(ud|tc)p\.(\,[a-zA-Z0-9\-]{1,14})*$";
+    var re = new RegExp(expression);
+    if (input.match(re))  {
+        return true;
+        } else {
+        return false;
+    }
   },
   BrowseInstances: Object(),
   discoverServices: function(regType,regDomain)
   {
-    this.Log("discoverServices(" + regType + "," + regDomain + ")");
+    if (!this.validRegistrationType(regType))   {
+        return false;
+    }
+    var invocationTxt = "discoverServices(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     if (null==regDomain)
     {
         if (!this.BrowseInstances[regType])
@@ -66,7 +99,8 @@ DSDMANAGER.prototype = {
   },
   getDiscoveredDomains: function(domainType)
   {
-    this.Log("getDiscoveredDomains(" + domainType + ")");
+    var invocationTxt = "getDiscoveredDomains(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var arrayDiscoveredDomains = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
     if (domainType == null) {
         var sqlDiscoveredDomains = this.DBConn.createStatement("SELECT * FROM DiscoveredDomains GROUP BY regdomain, domaintype");
@@ -88,7 +122,8 @@ DSDMANAGER.prototype = {
   },
   getDiscoveredDomainsCount: function(domainType)
   {
-    this.Log("getDiscoveredDomainsCount(" + domainType + ")");
+    var invocationTxt = "getDiscoveredDomainsCount(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var count=0;
     var sqlCountDiscoveredDomains = null;
     if (domainType == null) {
@@ -101,12 +136,13 @@ DSDMANAGER.prototype = {
     while (sqlCountDiscoveredDomains.executeStep()) {
         count++;
     }
-    this.Log("getDiscoveredDomainsCount(" + domainType + ") returning: " + count);
+    this.log([invocationTxt,"returning:",count].join(" "));
     return count;
   },  
   getDiscoveredServices: function (regType, regDomain)
   {
-    this.Log("getDiscoveredServices(" + regType + "," + regDomain + ")");
+    var invocationTxt = "getDiscoveredServices(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var arrayDiscoveredServices = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
     var sqlDiscoveredServices = null;
     if (regDomain==null)    {
@@ -136,7 +172,8 @@ DSDMANAGER.prototype = {
   },
   getDiscoveredServicesCount: function(regType, regDomain)
   {
-    this.Log("getDiscoveredServicesCount(" + regType + "," + regDomain + ")");
+    var invocationTxt = "getDiscoveredServicesCount(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var count=0;
     var sqlCountDiscoveredServices = null;
     if (regDomain==null)    {
@@ -149,7 +186,7 @@ DSDMANAGER.prototype = {
     while (sqlCountDiscoveredServices.executeStep()) {
         count++;
     }
-    this.Log("getDiscoveredServicesCount(" + regType + "," + regDomain + ") returning: " + count);
+    this.log([invocationTxt,"returning:",count].join(" "));
     return count;
   },
   ResolverInstances: Object(),
@@ -167,12 +204,13 @@ DSDMANAGER.prototype = {
   },
   resolveService: function(serviceName,regType,regDomain,timeout)
   {
-    this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ")");
+    var invocationTxt = "resolveServices(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var arrayResolvedService = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-    var id = serviceName + "." + regType + "." + regDomain;
+    var id = serviceName + "." + regType + regDomain;
     if (!this.ResolverInstances[id])
     {
-        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): creating resolver instance");
+        this.log(invocationTxt + ": creating resolver instance");
         this.ResolverInstances[id] = new this.ResolverInstance();
         this.ResolverInstances[id].obj.name = serviceName;
         this.ResolverInstances[id].obj.registrationType = regType;
@@ -184,7 +222,7 @@ DSDMANAGER.prototype = {
         }
         catch (e)
         {
-            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ") failed: " + e);
+            this.log([invocationTxt," failed: ",e].join(""));
         }
     }
     else if (this.ResolverInstances[id].obj.status == 99)
@@ -194,7 +232,7 @@ DSDMANAGER.prototype = {
         arrayResolvedService.appendElement(managerError, 0);
         var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
         lastErrorcode.setFromVariant(this.ResolverInstances[id].obj.lastErrorcode);
-        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): fatal state 99");
+        this.log(invocationTxt + ": fatal state 99");
     }
     else if (this.ResolverInstances[id].obj.status == 2)
     {
@@ -204,22 +242,8 @@ DSDMANAGER.prototype = {
         var targetPort = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
         targetPort.setFromVariant(this.ResolverInstances[id].targetPort);
         arrayResolvedService.appendElement(targetPort, 0);
-        // var txtRecords = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
-        // txtRecords.setFromVariant(this.ResolverInstances[id].txtRecords);
         arrayResolvedService.appendElement(this.ResolverInstances[id].txtRecords, 0);
-        
-        /*
-        for (var i=0;i<this.ResolverInstances[id].txtRecords.length;i++) 
-        {
-            handle = this.ResolverInstances[id].txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
-            if (handle.length == 2)
-            {
-                this.Log("{key:" + handle.queryElementAt(0,Components.interfaces.nsIVariant) + ",value:" + handle.queryElementAt(1,Components.interfaces.nsIVariant) + "}");
-            }
-        }
-        */
-        
-        this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): returned data in state 2");
+        this.log(invocationTxt + ": returned data in state 2");
     }
     else if (this.ResolverInstances[id].obj.status == 1)
     {
@@ -240,7 +264,7 @@ DSDMANAGER.prototype = {
             this.ResolverInstances[id].obj.stop();
             this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
 
-            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): timed out in state 1");
+            this.log(invocationTxt + ": timed out in state 1");
         }
     }
     else if (this.ResolverInstances[id].obj.status == 0)
@@ -256,24 +280,30 @@ DSDMANAGER.prototype = {
             if ((Math.round(now.getTime()/1000.0) - this.ResolverInstances[id].stopTS)>5)   {
                 this.ResolverInstances[id]=null;
                 delete this.ResolverInstances[id];
-                this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): delete timed out obj in manager state 98");
+                this.log(invocationTxt + ": delete timed out obj in manager state 98");
             } else {
-                this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): remaining in time out in manager state 98");
+                this.log(invocationTxt + ": remaining in time out in manager state 98");
             }
         } else {
-            this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + "): in state 0 for unknown reason. failed to start?");
+            this.log(invocationTxt + ": in state 0 for unknown reason. failed to start?");
         }
     }
-    this.Log("resolveService(" + serviceName + "," + regType + "," + regDomain + "," + timeout + ") returning " +  arrayResolvedService.length + " args");
+    this.log([invocationTxt,"returning",arrayResolvedService.length,"args"].join(" "));
     return arrayResolvedService;
   },
   RegistrationInstances: Object(),
   addService: function(serviceName, regType, targetHost, targetPort, txtKey, txtValue, regDomain)   {
+    var invocationTxt = "addService(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
+    if (!this.validServiceName(serviceName) || !this.validRegistrationType(regType)) {
+        return;
+    }
     var CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
     var chars = CHARS, uuid = [], rnd = Math.random;
     for (var i = 0; i < 15; i++) uuid[i] = chars[0 | rnd()*chars.length];
     var id = uuid.join('');
     this.RegistrationInstances[id] = Components.classes["@andrew.tj.id.au/dsdregister;1"].createInstance(Components.interfaces.IDSDREGISTER);
+    this.RegistrationInstances[id].instanceId = id;
     this.RegistrationInstances[id].interfaceIndex=0;
     this.RegistrationInstances[id].autorename = true;
     this.RegistrationInstances[id].name = serviceName;
@@ -288,12 +318,14 @@ DSDMANAGER.prototype = {
     }
     catch (e)   {
         this.RegistrationInstances[id]=null;
-        delete this.RegistrationInstances[id];
-        return ""
+        return;
     }
+    this.log([invocationTxt,"returning:",id].join(" "));
     return id;
   },
   removeService: function(identifier)   {
+    var invocationTxt = "removeService(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     if (this.RegistrationInstances[identifier])  {
         this.RegistrationInstances[identifier].stop();
         this.RegistrationInstances[identifier]=null;
@@ -302,8 +334,9 @@ DSDMANAGER.prototype = {
   },    
   handleEvent: function(from,isError,data)
   {
+    var invocationTxt = "handleEvent(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
     var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    this.Log("handleEvent(" + from + "," + isError + ',' + data +")");
     switch(from)    {
         case "enumerate":
             if (!isError)   {
@@ -322,12 +355,13 @@ DSDMANAGER.prototype = {
                 sql.bindUTF8StringParameter(1, domainType);
                 sql.execute();
                 sql.reset();
-                // below should look like for eg: "dsd_addregistrationdomain"
-                observerService.notifyObservers(null,"dsd_" + flags + domainType + "domain",regDomain);
+                // below should look like for eg: "dsd_domain_add_registration"
+                observerService.notifyObservers(null, ["dsd","domain",flags,domainType].join("_"), regDomain);
             }
         break;
         case "browse":
             if (!isError)   {
+                var notify = true;
                 flags = data.queryElementAt(0,Components.interfaces.nsIVariant);
                 if (flags == "add")
                 {
@@ -343,25 +377,27 @@ DSDMANAGER.prototype = {
                 sql.bindUTF8StringParameter(2, serviceName);
                 var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
                 sql.bindInt32Parameter(3, interfaceIndex);
-                sql.execute();
+                try {
+                    sql.execute();
+                }
+                catch (e if this.DBConn.lastError == 19)
+                {
+                    notify = false;
+                    this.log("DiscoveredServices already contains a record for ['" + [regDomain,regType,serviceName,interfaceIndex].join("','") + "']");
+                }
                 sql.reset();
-                var observerData = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-                var vServiceName = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
-                vServiceName.setFromVariant(serviceName);
-                observerData.appendElement(vRegDomain,0);
-                var vRegDomain = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
-                vRegDomain.setFromVariant(regDomain);
-                observerData.appendElement(vRegDomain,0);
-                // below should look like for eg: "dsd_add_http._tcp."
-                observerService.notifyObservers(null,"dsd_" + flags + regType,observerData);
+                if (notify) {
+                    observerService.notifyObservers(null, ["dsd","service",flags,regType].join("_"), [serviceName," (",regDomain,")"].join(""));
+                }
             }
         break;
         case "resolve":
             if (!isError)   {
                 var id = data.queryElementAt(0,Components.interfaces.nsIVariant);
                 var now = new Date();
+                this.log(id);
                 this.ResolverInstances[id].stopTS=Math.round(now.getTime()/1000.0);
-                // this.Log("It took " + (this.ResolverInstances[id].stopTS - this.ResolverInstances[id].initTS) + " seconds to resolve...");
+                // this.log("It took " + (this.ResolverInstances[id].stopTS - this.ResolverInstances[id].initTS) + " seconds to resolve...");
                 this.ResolverInstances[id].targetHostname = data.queryElementAt(2,Components.interfaces.nsIVariant);
                 this.ResolverInstances[id].targetPort = data.queryElementAt(3,Components.interfaces.nsIVariant);
                 if (data.length>3)
@@ -384,9 +420,19 @@ DSDMANAGER.prototype = {
                     }
                 }
             }
+        break;
+        case "register":
+            var id = data.queryElementAt(0,Components.interfaces.nsIVariant);
+            if(!isError)    {
+                flags = data.queryElementAt(1,Components.interfaces.nsIVariant);
+                // this should look like for eg: "dsd_register_add"
+                observerService.notifyObservers(null, "dsd_register_" + flags, id);
+            } else {
+                observerService.notifyObservers(null, "dsd_register_error", id);
+            }
         break;                    
         default:
-            this.Log("handleEvent - didn't recognise " + from);
+            this.log("handleEvent - didn't recognise " + from);
     }
   },
   // for nsISupports

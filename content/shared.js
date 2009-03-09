@@ -22,7 +22,19 @@ function checkResolver(context) {
                     finalurl += txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
                 }
             }
-            window._content.location=finalurl;
+            switch(context.target)
+            {
+                case "tab":
+                    var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
+                    win.openUILinkIn(finalurl, 'tab');
+                break;
+                case "window":
+                    var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
+                    win.openUILinkIn(finalurl, 'window');
+                break;
+                default:
+                    window._content.location=finalurl;
+            }
         }
     } else {
         context.timer = setTimeout(function(){checkResolver(context)}, 1000);
@@ -30,7 +42,12 @@ function checkResolver(context) {
 }
 
 function openLink(target,serviceName,regType,regDomain) {
-    // window.alert(target + ' : ' + serviceName + ' : ' + regType + ' : ' + regDomain);
+    if (target=="default")  {
+         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                        .getService(Components.interfaces.nsIPrefService);
+         prefs = prefs.getBranch("extensions.bonjourfoxy.");
+         target = prefs.getCharPref("target");
+    }
     var context = new Object();
     context.target = target;
     context.count=0;

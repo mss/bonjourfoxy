@@ -57,6 +57,7 @@ protected:
 
   DNSServiceRef mSdRef;
   
+  nsString mInstanceId;
   long mInterfaceIndex;
   PRBool mAutorename;
   nsString mName;

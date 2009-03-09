@@ -41,6 +41,10 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
   /* void stop (); */
   NS_SCRIPTABLE NS_IMETHOD Stop(void) = 0;
 
+  /* attribute AString instanceId; */
+  NS_SCRIPTABLE NS_IMETHOD GetInstanceId(nsAString & aInstanceId) = 0;
+  NS_SCRIPTABLE NS_IMETHOD SetInstanceId(const nsAString & aInstanceId) = 0;
+
   /* attribute long interfaceIndex; */
   NS_SCRIPTABLE NS_IMETHOD GetInterfaceIndex(PRInt32 *aInterfaceIndex) = 0;
   NS_SCRIPTABLE NS_IMETHOD SetInterfaceIndex(PRInt32 aInterfaceIndex) = 0;
@@ -103,6 +107,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
 #define NS_DECL_IDSDREGISTER \
   NS_SCRIPTABLE NS_IMETHOD Start(void); \
   NS_SCRIPTABLE NS_IMETHOD Stop(void); \
+  NS_SCRIPTABLE NS_IMETHOD GetInstanceId(nsAString & aInstanceId); \
+  NS_SCRIPTABLE NS_IMETHOD SetInstanceId(const nsAString & aInstanceId); \
   NS_SCRIPTABLE NS_IMETHOD GetInterfaceIndex(PRInt32 *aInterfaceIndex); \
   NS_SCRIPTABLE NS_IMETHOD SetInterfaceIndex(PRInt32 aInterfaceIndex); \
   NS_SCRIPTABLE NS_IMETHOD GetAutorename(PRBool *aAutorename); \
@@ -132,6 +138,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
 #define NS_FORWARD_IDSDREGISTER(_to) \
   NS_SCRIPTABLE NS_IMETHOD Start(void) { return _to Start(); } \
   NS_SCRIPTABLE NS_IMETHOD Stop(void) { return _to Stop(); } \
+  NS_SCRIPTABLE NS_IMETHOD GetInstanceId(nsAString & aInstanceId) { return _to GetInstanceId(aInstanceId); } \
+  NS_SCRIPTABLE NS_IMETHOD SetInstanceId(const nsAString & aInstanceId) { return _to SetInstanceId(aInstanceId); } \
   NS_SCRIPTABLE NS_IMETHOD GetInterfaceIndex(PRInt32 *aInterfaceIndex) { return _to GetInterfaceIndex(aInterfaceIndex); } \
   NS_SCRIPTABLE NS_IMETHOD SetInterfaceIndex(PRInt32 aInterfaceIndex) { return _to SetInterfaceIndex(aInterfaceIndex); } \
   NS_SCRIPTABLE NS_IMETHOD GetAutorename(PRBool *aAutorename) { return _to GetAutorename(aAutorename); } \
@@ -161,6 +169,8 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDREGISTER : public nsISupports {
 #define NS_FORWARD_SAFE_IDSDREGISTER(_to) \
   NS_SCRIPTABLE NS_IMETHOD Start(void) { return !_to ? NS_ERROR_NULL_POINTER : _to->Start(); } \
   NS_SCRIPTABLE NS_IMETHOD Stop(void) { return !_to ? NS_ERROR_NULL_POINTER : _to->Stop(); } \
+  NS_SCRIPTABLE NS_IMETHOD GetInstanceId(nsAString & aInstanceId) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetInstanceId(aInstanceId); } \
+  NS_SCRIPTABLE NS_IMETHOD SetInstanceId(const nsAString & aInstanceId) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetInstanceId(aInstanceId); } \
   NS_SCRIPTABLE NS_IMETHOD GetInterfaceIndex(PRInt32 *aInterfaceIndex) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetInterfaceIndex(aInterfaceIndex); } \
   NS_SCRIPTABLE NS_IMETHOD SetInterfaceIndex(PRInt32 aInterfaceIndex) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetInterfaceIndex(aInterfaceIndex); } \
   NS_SCRIPTABLE NS_IMETHOD GetAutorename(PRBool *aAutorename) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetAutorename(aAutorename); } \
@@ -226,6 +236,16 @@ NS_IMETHODIMP _MYCLASS_::Start()
 
 /* void stop (); */
 NS_IMETHODIMP _MYCLASS_::Stop()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute AString instanceId; */
+NS_IMETHODIMP _MYCLASS_::GetInstanceId(nsAString & aInstanceId)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP _MYCLASS_::SetInstanceId(const nsAString & aInstanceId)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -104,7 +104,10 @@ function go()   {
         }
     }
     var regid = obj.addService("BonjourFoxy", "_http._tcp", "andrew.tj.id.au.", 80, "path", "/projects/bonjourfoxy/", "local.");
+    document.getElementById('foo').innerHTML += "addService returned: " + regid + "<br/>";
     var regid = obj.addService("Andrew TJ's Blog", "_http._tcp", "andrew.tj.id.au.", 80, "path", "/", "local.");
+    document.getElementById('foo').innerHTML += "addService returned: " + regid + "<br/>";
+    var regid = obj.addService("Andrew TJ's subtype", "_http._tcp,badbad", "twitter.com.", 80, "path", "/AndrewTJ", "local.");
     document.getElementById('foo').innerHTML += "addService returned: " + regid + "<br/>";
     // document.getElementById('foo').innerHTML += ("<a href='#' onclick='obj.removeService(\""+regid+"\");'>removeService("+regid+")</a>");
     document.getElementById('foo').innerHTML += ("<a href='#' onclick='go();'>go()</a>");

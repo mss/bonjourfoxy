@@ -14,8 +14,14 @@
           src="chrome://bonjourfoxy/content/list.js" />
   <script type="application/x-javascript" 
           src="chrome://bonjourfoxy/content/shared.js" />
-          
-<richlistbox id="serviceList" flex="1" style="background-color: HighlightText; padding:0;margin:0;">
+
+<menupopup id="targetmenu" oncommand="contextListEventHandler(event);">
+    <menuitem label="Open" value="current"/>
+    <menuitem label="Open in New Tab" value="tab"/>
+    <menuitem label="Open in New Window" value="window"/>
+</menupopup>
+
+<richlistbox id="serviceList" flex="1" context="targetmenu" style="background-color: HighlightText; padding:0;margin:0;">
 </richlistbox>
 
 </page>

@@ -1,5 +1,5 @@
-<!ENTITY bonjourfoxy.title "Bonjour">
-<!ENTITY bonjourfoxy.label "Bonjour">
+<!ENTITY bonjourfoxy.title "BonjourFoxy">
+<!ENTITY bonjourfoxy.label "BonjourFoxy">
 <!ENTITY bonjourfoxyMenuSidebar.label "Display Sidebar">
-<!ENTITY bonjourfoxyToolbar.label "Bonjour Button">
-<!ENTITY bonjourfoxyToolbar.tooltip "Toggle Bonjour Sidebar">
+<!ENTITY bonjourfoxyToolbar.label "BonjourFoxy Button">
+<!ENTITY bonjourfoxyToolbar.tooltip "Toggle BonjourFoxy Sidebar">

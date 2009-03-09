@@ -69,7 +69,7 @@ NS_IMETHODIMP CDSDRESOLVE::Start()
     mUsersName.Append(mName);
     mUsersName.Append(NS_LITERAL_STRING("."));
     mUsersName.Append(mRegistrationType);
-    mUsersName.Append(NS_LITERAL_STRING("."));
+    // mUsersName.Append(NS_LITERAL_STRING("."));
     mUsersName.Append(mRegistrationDomain);
 	err = DNSServiceResolve(&mSdRef, 0, mInterfaceIndex, ToNewUTF8String(mName) , ToNewUTF8String(mRegistrationType), ToNewUTF8String(mRegistrationDomain), (DNSServiceResolveReply) Callback, this);
 	if (err != kDNSServiceErr_NoError) {
@@ -378,7 +378,7 @@ nsresult CDSDRESOLVE::StartTimer()
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
-    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 1000, 
+    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 100, 
                                         nsITimer::TYPE_REPEATING_SLACK);
 }
 

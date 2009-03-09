@@ -10,11 +10,11 @@
   </stringbundleset>
 
   <menubar id="main-menubar">
-    <menu label="Bonjour" insertbefore="tools-menu" onpopupshowing="menuAddServices();">
+    <menu label="BonjourFoxy" insertbefore="tools-menu" onpopupshowing="menuAddServices();">
     <menupopup id="bonjourMenuPopup">
         <menuitem id="key_openEmptySidebar" label="&bonjourfoxyMenuSidebar.label;" observes="viewBonjourServices"
               oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
-        <menuitem label="Preferences" disabled="true" />
+        <menuitem label="Preferences" oncommand="bonjourfoxy.openPreferences(event);"/>
         <menuseparator/>
     </menupopup>
     </menu>
@@ -42,5 +42,14 @@
                  sidebartitle="&bonjourfoxy.title;"
                  oncommand="toggleSidebar('viewBonjourServices');" />
   </broadcasterset>
+
+  <statusbar id="status-bar">
+	<statusbarpanel id="bonjourStatusIcon"
+	    class="statusbarpanel-iconic"
+	    image="chrome://bonjourfoxy/content/transparent.gif"
+		context="bonjourSBMenuPopup"
+		onclick="bonjourfoxy.onMenuItemCommand(event);"
+	/>
+  </statusbar>
 
 </overlay>

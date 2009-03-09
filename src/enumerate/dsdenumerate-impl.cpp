@@ -279,7 +279,7 @@ nsresult CDSDENUMERATE::StartTimer()
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
-    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 1000, 
+    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 100, 
                                         nsITimer::TYPE_REPEATING_SLACK);
 }
 

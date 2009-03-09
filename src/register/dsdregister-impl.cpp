@@ -48,6 +48,7 @@ CDSDREGISTER::CDSDREGISTER()
   mLastName = NS_LITERAL_STRING("");
   mLastRegType = NS_LITERAL_STRING("");
   mLastDomain = NS_LITERAL_STRING("");
+  mInstanceId = NS_LITERAL_STRING("");
 }
 
 CDSDREGISTER::~CDSDREGISTER()
@@ -121,6 +122,18 @@ NS_IMETHODIMP CDSDREGISTER::GetAutorename(PRBool *aAutorename)
 NS_IMETHODIMP CDSDREGISTER::SetAutorename(PRBool aAutorename)
 {
 	mAutorename = aAutorename;
+    return NS_OK;
+}
+
+/* attribute AString instanceId; */
+NS_IMETHODIMP CDSDREGISTER::GetInstanceId(nsAString & aInstanceId)
+{
+	aInstanceId = mInstanceId;
+    return NS_OK;
+}
+NS_IMETHODIMP CDSDREGISTER::SetInstanceId(const nsAString & aInstanceId)
+{
+	mInstanceId = aInstanceId;
     return NS_OK;
 }
 
@@ -274,13 +287,18 @@ void DNSSD_API CDSDREGISTER::Callback(
         nsCOMPtr<nsIMutableArray> array = do_CreateInstance(NS_ARRAY_CONTRACTID);
 
         self->mLastErrorcode = inErrorCode;
+        
+        nsCOMPtr<nsIWritableVariant> oInstanceId = do_CreateInstance("@mozilla.org/variant;1");        
+        oInstanceId->SetAsAUTF8String(NS_ConvertUTF16toUTF8(self->mInstanceId));
+        array->AppendElement(oInstanceId, PR_FALSE);
+        
         if (inErrorCode == kDNSServiceErr_NoError)
         {
             nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
     		if (inFlags & kDNSServiceFlagsAdd)    {
                 oFlags->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("add")));
     		} else {
-                oFlags->SetAsInt32(inFlags);
+                oFlags->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("rmv")));
     		}
             array->AppendElement(oFlags, PR_FALSE);
             self->mLastFlags = inFlags;
@@ -301,7 +319,31 @@ void DNSSD_API CDSDREGISTER::Callback(
             self->mLastDomain = NS_ConvertUTF8toUTF16(inRegDomain);  
 
         	dsdmanager->HandleEvent(NS_LITERAL_STRING("register"),PR_FALSE,array);
-            
+        } 
+        else if (inErrorCode == kDNSServiceErr_NameConflict) 
+        {
+            nsCOMPtr<nsIWritableVariant> oFlags = do_CreateInstance("@mozilla.org/variant;1");
+            oFlags->SetAsAUTF8String(NS_ConvertUTF16toUTF8(NS_LITERAL_STRING("conflict")));
+
+            array->AppendElement(oFlags, PR_FALSE);
+            self->mLastFlags = inFlags;
+        
+            nsCOMPtr<nsIWritableVariant> oName = do_CreateInstance("@mozilla.org/variant;1");        
+            oName->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inName)) );
+            array->AppendElement(oName, PR_FALSE);
+            self->mLastName = NS_ConvertUTF8toUTF16(inName);  
+    
+            nsCOMPtr<nsIWritableVariant> oRegType = do_CreateInstance("@mozilla.org/variant;1");        
+            oRegType->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inRegType)) );
+            array->AppendElement(oRegType, PR_FALSE);
+            self->mLastName = NS_ConvertUTF8toUTF16(inRegType);  
+    
+            nsCOMPtr<nsIWritableVariant> oRegDomain = do_CreateInstance("@mozilla.org/variant;1");        
+            oRegDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inRegDomain)) );
+            array->AppendElement(oRegDomain, PR_FALSE);
+            self->mLastDomain = NS_ConvertUTF8toUTF16(inRegDomain);  
+
+        	dsdmanager->HandleEvent(NS_LITERAL_STRING("register"),PR_FALSE,array);                
         } else {
 
             nsCOMPtr<nsIWritableVariant> oErrorCode = do_CreateInstance("@mozilla.org/variant;1");
@@ -372,7 +414,7 @@ nsresult CDSDREGISTER::StartTimer()
     mTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (!mTimer)
         return NS_ERROR_FAILURE;
-    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 1000, 
+    return mTimer->InitWithFuncCallback(this->TimeoutHandler, this, 100, 
                                         nsITimer::TYPE_REPEATING_SLACK);
 }
 
