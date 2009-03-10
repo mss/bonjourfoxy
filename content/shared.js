@@ -13,13 +13,19 @@ function checkResolver(context) {
             }
         } else {
             var finalurl="http://";
-            finalurl += result.queryElementAt(0,Components.interfaces.nsIVariant);
+            var targetHostname = result.queryElementAt(0,Components.interfaces.nsIVariant);
+            finalurl += targetHostname;
             finalurl += ":" + result.queryElementAt(1,Components.interfaces.nsIVariant);
             var txtRecords = result.queryElementAt(2,Components.interfaces.nsIArray);
             for (var i=0;i<txtRecords.length;i++)   {
                 var txtRecord = txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
                 if (txtRecord.queryElementAt(0,Components.interfaces.nsIVariant)=="path")  {
-                    finalurl += txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
+                    var uri = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
+                    if (uri[0]=="/")    {
+                        finalurl += uri;
+                    } else {
+                        finalurl += "/" + uri;
+                    }
                 }
             }
             switch(context.target)

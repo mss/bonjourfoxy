@@ -92,8 +92,11 @@ dsdOverlayObserver.prototype = {
          prefs = prefs.getBranch("extensions.bonjourfoxy.");
          if (prefs.getBoolPref("alerts"))
          {
-             var alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
-             alertsService.showAlertNotification(null,"Service Discovered",data,null,null,null);
+             // kludgey....
+             if (obj.getServiceNameCount(data)==1)  {
+                 var alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
+                 alertsService.showAlertNotification(null,"Service Discovered",data,null,null,null);
+             }
          }
      }
   },

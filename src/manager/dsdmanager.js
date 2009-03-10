@@ -56,7 +56,7 @@ DSDMANAGER.prototype = {
     }
   },
   validRegistrationType: function(input)   {
-    var expression = "^_[a-zA-Z0-9\-]{1,14}\._(ud|tc)p\.(\,[a-zA-Z0-9\-]{1,14})*$";
+    var expression = "^(_[a-zA-Z0-9\-]{1,14}\.)+_(ud|tc)p\.(\,[a-zA-Z0-9\-]{1,14})*$";
     var re = new RegExp(expression);
     if (input.match(re))  {
         return true;
@@ -185,6 +185,19 @@ DSDMANAGER.prototype = {
     sqlCountDiscoveredServices.bindUTF8StringParameter(0, regType);
     while (sqlCountDiscoveredServices.executeStep()) {
         count++;
+    }
+    this.log([invocationTxt,"returning:",count].join(" "));
+    return count;
+  },
+  getServiceNameCount: function(serviceName)
+  {
+    var invocationTxt = "getServiceNameCount(" + Array.prototype.slice.call(arguments).join(",") + ")";
+    this.log(invocationTxt);
+    var count=0;
+    var sqlServiceNameCount = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredServices WHERE servicename = ?1");
+    sqlServiceNameCount.bindUTF8StringParameter(0, serviceName);
+    while (sqlServiceNameCount.executeStep()) {
+        count = sqlServiceNameCount.getInt32(0);
     }
     this.log([invocationTxt,"returning:",count].join(" "));
     return count;
@@ -377,6 +390,7 @@ DSDMANAGER.prototype = {
                 sql.bindUTF8StringParameter(2, serviceName);
                 var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
                 sql.bindInt32Parameter(3, interfaceIndex);
+                dump(["browse :",regDomain,":",regType,":",serviceName,":",interfaceIndex].join(" ") + "\n");
                 try {
                     sql.execute();
                 }
@@ -387,7 +401,7 @@ DSDMANAGER.prototype = {
                 }
                 sql.reset();
                 if (notify) {
-                    observerService.notifyObservers(null, ["dsd","service",flags,regType].join("_"), [serviceName," (",regDomain,")"].join(""));
+                    observerService.notifyObservers(null, ["dsd","service",flags,regType].join("_"), serviceName);
                 }
             }
         break;

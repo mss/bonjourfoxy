@@ -57,6 +57,9 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
   /* PRUint32 getDiscoveredServicesCount (in AString regType, in AString regDomain); */
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServicesCount(const nsAString & regType, const nsAString & regDomain, PRUint32 *_retval) = 0;
 
+  /* PRUint32 getServiceNameCount (in AString serviceName); */
+  NS_SCRIPTABLE NS_IMETHOD GetServiceNameCount(const nsAString & serviceName, PRUint32 *_retval) = 0;
+
   /* nsIArray resolveService (in AString serviceName, in AString regType, in AString regDomain, in long timeout); */
   NS_SCRIPTABLE NS_IMETHOD ResolveService(const nsAString & serviceName, const nsAString & regType, const nsAString & regDomain, PRInt32 timeout, nsIArray **_retval) = 0;
 
@@ -78,6 +81,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval); \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServices(const nsAString & regType, const nsAString & regDomain, nsIArray **_retval); \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServicesCount(const nsAString & regType, const nsAString & regDomain, PRUint32 *_retval); \
+  NS_SCRIPTABLE NS_IMETHOD GetServiceNameCount(const nsAString & serviceName, PRUint32 *_retval); \
   NS_SCRIPTABLE NS_IMETHOD ResolveService(const nsAString & serviceName, const nsAString & regType, const nsAString & regDomain, PRInt32 timeout, nsIArray **_retval); \
   NS_SCRIPTABLE NS_IMETHOD AddService(const nsAString & serviceName, const nsAString & regType, const nsAString & targetHost, PRInt32 targetPort, const nsAString & txtKey, const nsAString & txtValue, const nsAString & regDomain, nsAString & _retval); \
   NS_SCRIPTABLE NS_IMETHOD RemoveService(const nsAString & identifier); 
@@ -90,6 +94,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval) { return _to GetDiscoveredDomainsCount(domainType, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServices(const nsAString & regType, const nsAString & regDomain, nsIArray **_retval) { return _to GetDiscoveredServices(regType, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServicesCount(const nsAString & regType, const nsAString & regDomain, PRUint32 *_retval) { return _to GetDiscoveredServicesCount(regType, regDomain, _retval); } \
+  NS_SCRIPTABLE NS_IMETHOD GetServiceNameCount(const nsAString & serviceName, PRUint32 *_retval) { return _to GetServiceNameCount(serviceName, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD ResolveService(const nsAString & serviceName, const nsAString & regType, const nsAString & regDomain, PRInt32 timeout, nsIArray **_retval) { return _to ResolveService(serviceName, regType, regDomain, timeout, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD AddService(const nsAString & serviceName, const nsAString & regType, const nsAString & targetHost, PRInt32 targetPort, const nsAString & txtKey, const nsAString & txtValue, const nsAString & regDomain, nsAString & _retval) { return _to AddService(serviceName, regType, targetHost, targetPort, txtKey, txtValue, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD RemoveService(const nsAString & identifier) { return _to RemoveService(identifier); } 
@@ -102,6 +107,7 @@ class NS_NO_VTABLE NS_SCRIPTABLE IDSDMANAGER : public nsISupports {
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredDomainsCount(const nsAString & domainType, PRUint32 *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDiscoveredDomainsCount(domainType, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServices(const nsAString & regType, const nsAString & regDomain, nsIArray **_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDiscoveredServices(regType, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD GetDiscoveredServicesCount(const nsAString & regType, const nsAString & regDomain, PRUint32 *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDiscoveredServicesCount(regType, regDomain, _retval); } \
+  NS_SCRIPTABLE NS_IMETHOD GetServiceNameCount(const nsAString & serviceName, PRUint32 *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetServiceNameCount(serviceName, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD ResolveService(const nsAString & serviceName, const nsAString & regType, const nsAString & regDomain, PRInt32 timeout, nsIArray **_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->ResolveService(serviceName, regType, regDomain, timeout, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD AddService(const nsAString & serviceName, const nsAString & regType, const nsAString & targetHost, PRInt32 targetPort, const nsAString & txtKey, const nsAString & txtValue, const nsAString & regDomain, nsAString & _retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->AddService(serviceName, regType, targetHost, targetPort, txtKey, txtValue, regDomain, _retval); } \
   NS_SCRIPTABLE NS_IMETHOD RemoveService(const nsAString & identifier) { return !_to ? NS_ERROR_NULL_POINTER : _to->RemoveService(identifier); } 
@@ -170,6 +176,12 @@ NS_IMETHODIMP _MYCLASS_::GetDiscoveredServices(const nsAString & regType, const 
 
 /* PRUint32 getDiscoveredServicesCount (in AString regType, in AString regDomain); */
 NS_IMETHODIMP _MYCLASS_::GetDiscoveredServicesCount(const nsAString & regType, const nsAString & regDomain, PRUint32 *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* PRUint32 getServiceNameCount (in AString serviceName); */
+NS_IMETHODIMP _MYCLASS_::GetServiceNameCount(const nsAString & serviceName, PRUint32 *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

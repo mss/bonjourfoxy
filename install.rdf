@@ -3,7 +3,7 @@
  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>bonjourfoxy@andrew.tj.id.au</em:id>
-    <em:version>0.3.0</em:version>
+    <em:version>0.3.1</em:version>
 
     <em:optionsURL>chrome://bonjourfoxy/content/options.xul</em:optionsURL>
 
