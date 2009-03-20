@@ -1,24 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
- xmlns:em="http://www.mozilla.org/2004/em-rdf#">
-  <Description about="urn:mozilla:install-manifest">
-    <em:id>bonjourfoxy@andrew.tj.id.au</em:id>
-    <em:version>0.3.1</em:version>
-
-    <em:optionsURL>chrome://bonjourfoxy/content/options.xul</em:optionsURL>
-
-    <em:name>BonjourFoxy</em:name>
-    <em:description>Bonjour for Firefox</em:description> 
-    <em:creator>Andrew Tunnell-Jones</em:creator>
-    <em:homepageURL>http://andrew.tj.id.au/projects/bonjourfoxy</em:homepageURL>
-
-    <em:targetApplication>
-      <Description>
-        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- firefox -->
-        <em:minVersion>3.0</em:minVersion>
-        <em:maxVersion>3.0.*</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-  </Description>
-</RDF>
+<?xml version="1.0"?>
+<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:NC="http://home.netscape.com/NC-rdf#"
+         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Description RDF:about="rdf:#$f.z7d"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="3.0"
+                   em:maxVersion="3.0.*" />
+  <RDF:Description RDF:about="urn:mozilla:install-manifest"
+                   em:updateURL="http://andrew.tj.id.au/files/bonjourfoxy.rdf"
+                   em:id="bonjourfoxy@andrew.tj.id.au"
+                   em:version="0.3.4"
+                   em:optionsURL="chrome://bonjourfoxy/content/options.xul"
+                   em:name="BonjourFoxy"
+                   em:description="Bonjour for Firefox"
+                   em:creator="Andrew Tunnell-Jones"
+                   em:homepageURL="http://andrew.tj.id.au/projects/bonjourfoxy"
+                   em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDWwCK0FLOaZ4SAl0fUuHsfaQVVZXKpFWGZXlECWO2IEbZJ3N5s4MBTpfLVJ4r8L1I7XqzEAOwVOu9g9hA1UqW/g8pVwhc457CyBKgWQ2BMCGTET7xT0TXklbkkjx6NCcR80cGkLXJFjO+E/MWfd8GN/F81ELvbjTvEgno92vGFxwIDAQAB">
+    <em:targetApplication RDF:resource="rdf:#$f.z7d"/>
+  </RDF:Description>
+</RDF:RDF>

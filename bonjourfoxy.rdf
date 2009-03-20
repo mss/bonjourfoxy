@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:NC="http://home.netscape.com/NC-rdf#"
+         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Seq RDF:about="rdf:#$k.z7d">
+    <RDF:li RDF:resource="rdf:#$l.z7d"/>
+  </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$l.z7d"
+                   em:version="0.3.4">
+    <em:targetApplication RDF:resource="rdf:#$o.z7d"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="rdf:#$o.z7d"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="3.0"
+                   em:maxVersion="3.0.*"
+                   em:updateLink="http://andrew.tj.id.au/files/bonjourfoxy.xpi"
+                   em:updateHash="sha1:4e800839309f6342b599226c215655e6d9e49026" />
+  <RDF:Description RDF:about="urn:mozilla:extension:bonjourfoxy@andrew.tj.id.au"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAFRQJ0GYlD+140QeG+x6x1J975yRuXolPZke/9pcM62kLg69D/dEeOEyhNuWAfhbIXPo3CryBe1x2QXr2Or0lq1Grb1xPMGyvrYJ3Q6iXTDNI0d+NO48gC+HEUAAJu4gBwm+opguENaU0wBG5Er/wAENutDoyB2tOp2SnaDOEixB">
+    <em:updates RDF:resource="rdf:#$k.z7d"/>
+  </RDF:Description>
+</RDF:RDF>
