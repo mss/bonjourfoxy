@@ -10,6 +10,7 @@
 <prefpane id="bonjourfoxy-prefpane" label="BonjourFoxy Preferences">
   <preferences>
     <preference id="pref_alerts" name="extensions.bonjourfoxy.alerts" instantApply="true" type="bool"/>
+    <preference id="pref_statusbaricon" name="extensions.bonjourfoxy.statusbaricon" instantApply="true" type="bool"/>
     <preference id="pref_target" name="extensions.bonjourfoxy.target" instantApply="true" type="string"/>
   </preferences>
  
@@ -20,6 +21,11 @@
       <label control="alerts" value="Discovery notifications:"/>
       <spacer flex="1"/>
       <checkbox preference="pref_alerts" id="alerts"/>
+  </hbox>
+  <hbox>
+      <label control="statusbaricon" value="Status bar icon:"/>
+      <spacer flex="1"/>
+      <checkbox preference="pref_statusbaricon" id="statusbaricon"/>
   </hbox>
   <hbox flex="1">
       <label control="target" value="Open links in:"/>

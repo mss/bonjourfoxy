@@ -1,0 +1,13 @@
+#include "nsISupports.idl"
+#include "nsIArray.idl"
+#include "nsIMutableArray.idl"
+#include "nsIObserver.idl"
+
+[scriptable, uuid(72427B4D-F37D-4BF8-A6BE-41510B27E6A3)]
+
+interface IBFNOTIFIER : nsISupports
+{
+    void observe( in nsISupports aSubject, 
+        in string aTopic, 
+        in wstring aData );
+};

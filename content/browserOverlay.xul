@@ -47,7 +47,8 @@
   <statusbar id="status-bar">
 	<statusbarpanel id="bonjourStatusIcon"
 	    class="statusbarpanel-iconic"
-	    image="chrome://bonjourfoxy/content/transparent.gif"
+	    image="chrome://bonjourfoxy/content/status_bw.png"
+	    tooltiptext="No Services Discovered"
 		context="bonjourSBMenuPopup"
 		onclick="bonjourfoxy.onMenuItemCommand(event);"
 	/>
