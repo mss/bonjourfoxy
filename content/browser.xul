@@ -18,22 +18,16 @@ var ServiceBrowser = {
         }
     },
     resolveService: function(serviceName,regType,regDomain) {
-        // netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
         var context = new Object();
         context.count=0;
         context.serviceName = unescape(serviceName);
         context.regType = unescape(regType);
         context.regDomain = unescape(regDomain);
-        // context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-        // context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
-        this.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
-        this.checkResolver(context);
+        ServiceBrowser.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        ServiceBrowser.checkResolver(context);
     },
     checkResolver: function(context) {
-        // netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-        // context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-        // var result = new context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
-        var result = this.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        var result = ServiceBrowser.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
         if (result.length>0)    {
             if (result.length==1)   {
                 var errorArray = result.queryElementAt(0,Components.interfaces.nsIArray)
@@ -74,7 +68,7 @@ var ServiceBrowser = {
         for (var i=0; i<services.length;i++)    {
             var service = services.queryElementAt(i,Components.interfaces.nsIArray);
             var regtype = service.queryElementAt(2,Components.interfaces.nsIVariant) + ['._',protocol,'.'].join('');
-            this.IDSDMANAGER.discoverServices(regtype,null);
+            ServiceBrowser.IDSDMANAGER.discoverServices(regtype,null);
         }
     },
     appendListItemsFromServices: function(lb,services,protocol) {
@@ -83,7 +77,7 @@ var ServiceBrowser = {
             var service = services.queryElementAt(i,Components.interfaces.nsIArray);
             var regtype = service.queryElementAt(2,Components.interfaces.nsIVariant) + ['._',protocol,'.'].join('');
             var rServices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices(regtype,null);
-            if (showUnknown||this.known.indexOf(regtype)!=-1) {
+            if (showUnknown||ServiceBrowser.known.indexOf(regtype)!=-1) {
                 for (var j=0; j<rServices.length;j++)   {
                     var rService = rServices.queryElementAt(j,Components.interfaces.nsIArray);
                     var newListItem = document.createElement('listitem');
@@ -118,8 +112,14 @@ var ServiceBrowser = {
             lbServicesListItems = lbServices.getElementsByTagName('listitem');
         }
         ServiceBrowser.IDSDMANAGER.discoverServices("_services._dns-sd._udp.",null);
-        var tcpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_tcp.local.",null);
-        var udpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_udp.local.",null);
+        if (navigator.platform.indexOf('Mac')!=-1||navigator.platform.indexOf('Win')!=-1)
+            {
+            var tcpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_tcp.local.",null);
+            var udpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_udp.local.",null);
+            } else {
+            var tcpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_tcp.",null);
+            var udpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_udp.",null);
+            }                
         ServiceBrowser.discoverServicesFromServices(tcpservices,'tcp');
         ServiceBrowser.discoverServicesFromServices(udpservices,'udp');
         ServiceBrowser.appendListItemsFromServices(lbServices,tcpservices,'tcp');

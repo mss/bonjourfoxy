@@ -4,7 +4,7 @@ rm -fv bonjourfoxy.xpi
 find .                  \
 ! -path "*src*"         \
 ! -path "*git*"         \
-! -name "update.rf"     \
+! -name "update.rdf"     \
 ! -name "*.DS_Store"    \
 ! -name "*.sh"          \
 ! -name "README"        \
