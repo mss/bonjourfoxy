@@ -14,7 +14,8 @@
     <menupopup id="bonjourMenuPopup">
         <menuitem id="key_openEmptySidebar" label="&bonjourfoxyMenuSidebar.label;" observes="viewBonjourServices"
               oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
-        <menuitem label="Preferences" oncommand="bonjourfoxy.openPreferences(event);"/>
+        <menuitem label="&bonjourfoxyMenuBrowser.label;" oncommand="window.open('chrome://bonjourfoxy/content/browser.xul','bonjourfoxyBrowser','chrome,resizable=yes,width=600,height=600');" />
+        <menuitem label="&bonjourfoxyMenuPref.label;" oncommand="bonjourfoxy.openPreferences(event);"/>
         <menuseparator/>
     </menupopup>
     </menu>

@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window title="BonjourFoxy Browser" id="bonjourfoxyBrowser" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<script>
+<![CDATA[
+
+netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+
+var ServiceBrowser = {
+    IDSDMANAGER: Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER),
+    known:  [
+        '_http._tcp.',
+    ],
+    removeChildren: function (el) {
+        while (el.firstChild)   {
+            el.removeChild(el.firstChild);
+        }
+    },
+    resolveService: function(serviceName,regType,regDomain) {
+        // netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+        var context = new Object();
+        context.count=0;
+        context.serviceName = unescape(serviceName);
+        context.regType = unescape(regType);
+        context.regDomain = unescape(regDomain);
+        // context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+        // context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        this.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        this.checkResolver(context);
+    },
+    checkResolver: function(context) {
+        // netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+        // context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+        // var result = new context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        var result = this.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        if (result.length>0)    {
+            if (result.length==1)   {
+                var errorArray = result.queryElementAt(0,Components.interfaces.nsIArray)
+                var error = errorArray.queryElementAt(0,Components.interfaces.nsIVariant);
+                var status = errorArray.queryElementAt(1,Components.interfaces.nsIVariant);
+                if (error==98)  {
+                    window.alert("Timed out resolving '" + context.serviceName + "'");
+                } else {
+                    window.alert("Error " + error + " State: " + status);
+                }
+            } else {
+                document.getElementById('tbServiceName').setAttribute('value',context.serviceName);
+                document.getElementById('tbRegistrationType').setAttribute('value',context.regType);
+                document.getElementById('tbRegistrationDomain').setAttribute('value',context.regDomain);
+                document.getElementById('tbHost').setAttribute('value',result.queryElementAt(0,Components.interfaces.nsIVariant));
+                document.getElementById('tbPort').setAttribute('value',result.queryElementAt(1,Components.interfaces.nsIVariant));
+                var txtRecordsTxt = "None";
+                var txtRecords = result.queryElementAt(2,Components.interfaces.nsIArray);
+                for (var i=0;i<txtRecords.length;i++)   {
+                    var txtRecord = txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
+                    var txtRecordKey = txtRecord.queryElementAt(0,Components.interfaces.nsIVariant);
+                    var txtRecordValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
+                    if (txtRecordKey!='')   {
+                        if (txtRecordsTxt=="None")   {
+                            txtRecordsTxt = "";
+                        }
+                        txtRecordsTxt += [txtRecordKey,'=',txtRecordValue,"\n"].join('');
+                        }
+                    }
+                document.getElementById('tbTextRecords').setAttribute('value',txtRecordsTxt);
+                document.getElementById('gpServiceInfo').setAttribute('style','');
+            }
+        } else {
+            context.timer = setTimeout(function(){ServiceBrowser.checkResolver(context)}, 1000);
+        }
+    },
+    discoverServicesFromServices: function(services,protocol) {
+        for (var i=0; i<services.length;i++)    {
+            var service = services.queryElementAt(i,Components.interfaces.nsIArray);
+            var regtype = service.queryElementAt(2,Components.interfaces.nsIVariant) + ['._',protocol,'.'].join('');
+            this.IDSDMANAGER.discoverServices(regtype,null);
+        }
+    },
+    appendListItemsFromServices: function(lb,services,protocol) {
+        var showUnknown = true;
+        for (var i=0; i<services.length;i++) {
+            var service = services.queryElementAt(i,Components.interfaces.nsIArray);
+            var regtype = service.queryElementAt(2,Components.interfaces.nsIVariant) + ['._',protocol,'.'].join('');
+            var rServices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices(regtype,null);
+            if (showUnknown||this.known.indexOf(regtype)!=-1) {
+                for (var j=0; j<rServices.length;j++)   {
+                    var rService = rServices.queryElementAt(j,Components.interfaces.nsIArray);
+                    var newListItem = document.createElement('listitem');
+                    var newLabelDomain = document.createElement('label');
+                    var newLabelRegistrationType = document.createElement('label');
+                    var newLabelServiceName = document.createElement('label');
+                    newLabelDomain.setAttribute('value',rService.queryElementAt(0,Components.interfaces.nsIVariant));
+                    newLabelDomain.setAttribute('flex',1);
+                    newLabelRegistrationType.setAttribute('value',rService.queryElementAt(1,Components.interfaces.nsIVariant));
+                    newLabelRegistrationType.setAttribute('flex',1);
+                    newLabelServiceName.setAttribute('value',rService.queryElementAt(2,Components.interfaces.nsIVariant));
+                    newLabelServiceName.setAttribute('flex',1);
+                    newListItem.appendChild(newLabelServiceName);
+                    newListItem.appendChild(newLabelRegistrationType);
+                    newListItem.appendChild(newLabelDomain);
+                    newListItem.setAttribute('onclick','ServiceBrowser.resolveService("' + [
+                    escape(rService.queryElementAt(2,Components.interfaces.nsIVariant)),
+                    escape(rService.queryElementAt(1,Components.interfaces.nsIVariant)),
+                    escape(rService.queryElementAt(0,Components.interfaces.nsIVariant))
+                    ].join('","')+'");');
+                    newListItem.setAttribute('style','cursor: pointer;');
+                    lb.appendChild(newListItem);
+                }
+            }
+        }
+    },
+    renderServices: function()   {
+        var lbServices = document.getElementById('lbServices');
+        var lbServicesListItems = lbServices.getElementsByTagName('listitem');
+        while (lbServicesListItems.length!=0)    {
+            lbServices.removeChild(lbServicesListItems[0]);
+            lbServicesListItems = lbServices.getElementsByTagName('listitem');
+        }
+        ServiceBrowser.IDSDMANAGER.discoverServices("_services._dns-sd._udp.",null);
+        var tcpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_tcp.local.",null);
+        var udpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_udp.local.",null);
+        ServiceBrowser.discoverServicesFromServices(tcpservices,'tcp');
+        ServiceBrowser.discoverServicesFromServices(udpservices,'udp');
+        ServiceBrowser.appendListItemsFromServices(lbServices,tcpservices,'tcp');
+        ServiceBrowser.appendListItemsFromServices(lbServices,udpservices,'udp');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", ServiceBrowser.renderServices, false);
+
+]]>
+</script>
+<vbox flex="1" style="padding: 0; margin: 0;">
+    <listbox id="lbServices" rows="5" flex="1" style="padding: 0; margin: 0;">
+      <listcols>
+	<listcol flex="1" />
+	<splitter class="tree-splitter" />
+	<listcol flex="1" />
+	<splitter class="tree-splitter" />
+	<listcol flex="1" />
+      </listcols>
+      <listhead>
+	<listheader label="Service Name" />
+	<listheader label="Registration Type" />
+	<listheader label="Domain" />
+      </listhead>
+    </listbox>
+    <groupbox id="gpServiceInfo" style="display: none;">
+    <hbox align="center">
+    <label style="width: 10em;" value="Service Name"/>
+    <textbox flex="1" value="Service Name" id="tbServiceName" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 10em;" value="Registration Type"/>
+    <textbox flex="1" value="Registration Type" id="tbRegistrationType" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 10em;" value="Registration Domain"/>
+    <textbox flex="1" value="Registration Domain" id="tbRegistrationDomain" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 10em;" value="Host"/>
+    <textbox flex="1" value="Host" id="tbHost" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 10em;" value="Port"/>
+    <textbox flex="1" value="Port" id="tbPort" readonly="true" />
+    </hbox>
+    <hbox>
+    <label style="width: 10em; padding-top: 5px;" value="Text Records"/>
+    <textbox flex="1" multiline="true" id="tbTextRecords" readonly="true" rows="7" />
+    </hbox>
+    </groupbox>
+    <hbox>
+    <spacer flex="1" />
+    <button oncommand="ServiceBrowser.renderServices()" label="Refresh Service List" />
+    </hbox>
+</vbox>
+
+</window>

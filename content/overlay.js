@@ -38,7 +38,7 @@ function menuEventHandler(element) {
 
 function menuAddServices() {
     var menu = document.getElementById("bonjourMenuPopup");
-    while (menu.childNodes.length>3)   {
+    while (menu.childNodes.length>4)   {
         menu.removeChild(menu.childNodes[menu.childNodes.length-1]);
     }
 
