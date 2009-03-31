@@ -39,6 +39,12 @@ function serviceHandler(event)  {
                 catch (e)   {
                     window.alert("Error: " + DBConn.lastErrorString);
                 }
+                var now = new Date();
+                var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefService);
+                prefs = prefs.getBranch("extensions.bonjourfoxy.");
+                prefs.setIntPref("hts", Math.round(now.getTime()/1000.0));
+                return true;
             }
         break;
         case "edit":

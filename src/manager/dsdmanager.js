@@ -479,8 +479,8 @@ GROUP BY                                                                    \
                 sql.bindUTF8StringParameter(1, domainType);
                 sql.execute();
                 sql.reset();
-                // below should look like for eg: "dsd_domain_add_registration"
-                observerService.notifyObservers(null, ["dsd","domain",flags,domainType].join("_"), regDomain);
+                // below should look like for eg: "dsd_domain_add:registration"
+                observerService.notifyObservers(null, ["dsd_domain_",flags,':',domainType].join(""), regDomain);
             }
         break;
         case "browse":
@@ -494,15 +494,15 @@ GROUP BY                                                                    \
                 } else {
                     var sql = this.DBConn.createStatement("DELETE FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename = ?3 AND ifindex = ?4");
                 }
-                var requestedRegType = data.queryElementAt(5,Components.interfaces.nsIVariant);
+                var requestedRegType = data.queryElementAt(5, Components.interfaces.nsIVariant);
                 var hasSubTypes = requestedRegType.indexOf(',')!=-1;
-                var regDomain = data.queryElementAt(4,Components.interfaces.nsIVariant);
+                var regDomain = data.queryElementAt(4, Components.interfaces.nsIVariant);
                 sql.bindUTF8StringParameter(0, regDomain);
-                var regType = data.queryElementAt(3,Components.interfaces.nsIVariant);
+                var regType = data.queryElementAt(3, Components.interfaces.nsIVariant);
                 sql.bindUTF8StringParameter(1, regType);
-                var serviceName = data.queryElementAt(2,Components.interfaces.nsIVariant);
+                var serviceName = data.queryElementAt(2, Components.interfaces.nsIVariant);
                 sql.bindUTF8StringParameter(2, serviceName);
-                var interfaceIndex = data.queryElementAt(1,Components.interfaces.nsIVariant);
+                var interfaceIndex = data.queryElementAt(1, Components.interfaces.nsIVariant);
                 sql.bindInt32Parameter(3, interfaceIndex);
                 try { sql.execute(); }
                 catch (e if this.DBConn.lastError == 19)
@@ -511,19 +511,19 @@ GROUP BY                                                                    \
                     this.log("DiscoveredServices already contains a record for ['" + [regDomain,regType,serviceName,interfaceIndex].join("','") + "']");
                 }
                 sql.reset();
-                if (notify) { observerService.notifyObservers(null, ["dsd","service",flags,regType].join("_"), serviceName); }
+                var sqlServiceID = this.DBConn.createStatement("SELECT id FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename =?3 AND ifindex = ?4");
+                sqlServiceID.bindUTF8StringParameter(0, regDomain);
+                sqlServiceID.bindUTF8StringParameter(1, regType);
+                sqlServiceID.bindUTF8StringParameter(2, serviceName);
+                sqlServiceID.bindInt32Parameter(3, interfaceIndex);
+                var serviceID = null;
+                while (sqlServiceID.executeStep()) {
+                    serviceID = sqlServiceID.getInt32(0);
+                }
+                if (notify) { observerService.notifyObservers(null, ["dsd_service_",flags,':',regType].join(""), serviceID); }
                 if (flags == "add" && hasSubTypes)
                 {
                     var subTypesArray = requestedRegType.split(",");
-                    var sqlServiceID = this.DBConn.createStatement("SELECT id FROM DiscoveredServices WHERE regdomain = ?1 AND regtype = ?2 AND servicename =?3 AND ifindex = ?4");
-                    sqlServiceID.bindUTF8StringParameter(0, regDomain);
-                    sqlServiceID.bindUTF8StringParameter(1, regType);
-                    sqlServiceID.bindUTF8StringParameter(2, serviceName);
-                    sqlServiceID.bindInt32Parameter(3, interfaceIndex);
-                    var serviceID = null;
-                    while (sqlServiceID.executeStep()) {
-                        serviceID = sqlServiceID.getInt32(0);
-                    }
                     var sqlInsertSubTypes = this.DBConn.createStatement("INSERT INTO DiscoveredServicesSubTypes (ds_id, subtype) VALUES (?1, ?2)");
                     for (i=1;i<subTypesArray.length;i++)
                     {

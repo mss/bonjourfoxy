@@ -92,6 +92,9 @@ function subtypesCommandHandler(event)  {
             }   
         }
     }
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService);
+    prefs = prefs.getBranch("extensions.bonjourfoxy.");
 }
 
 function onAccept() {
@@ -204,17 +207,11 @@ VALUES (?1, ?2, ?3);               ");
             }
         }
     }
-    /*
-    dump(serviceID+"\n");
-    dump([regtype,label,scheme,""].join("\n"));
-    for (var i=0;i<lbSubtypeItems.length;i++)   {
-        dump(lbSubtypeItems[i].value + "\n")
-        var sublabel = lbSubtypeItems[i].childNodes[0].value;
-        var subtype = lbSubtypeItems[i].childNodes[1].value;
-        subtypes[i] = [label,subtype];
-        dump(['sublabel',sublabel,'subtype',subtype,"\n"].join(' '));
-    }
-    */
+    var now = new Date();
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService);
+    prefs = prefs.getBranch("extensions.bonjourfoxy.");
+    prefs.setIntPref("hts", Math.round(now.getTime()/1000.0));
     return true;
 }
 

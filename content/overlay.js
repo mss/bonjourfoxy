@@ -4,7 +4,7 @@ var bonjourfoxy = {
     this.initialized = true;
     this.strings = document.getElementById("bonjourfoxy-strings");
     this.IDSDMANAGER = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    this.IDSDMANAGER.discoverServices("_http._tcp.",null);
+    // this.IDSDMANAGER.discoverServices("_http._tcp.",null);
     this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
             .getService(Components.interfaces.nsIPrefService)
             .getBranch("extensions.bonjourfoxy.");
@@ -111,20 +111,6 @@ dsdOverlayObserver.prototype = {
         document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/status_color.png");
      } else {
         document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/transparent.gif");
-     }
-     if (topic=="dsd_service_add__http._tcp.")
-     {
-         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefService);
-         prefs = prefs.getBranch("extensions.bonjourfoxy.");
-         if (prefs.getBoolPref("alerts"))
-         {
-             // kludgey....
-             if (obj.getServiceNameCount(data)==1)  {
-                 var alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
-                 alertsService.showAlertNotification(null,"Service Discovered",data,null,null,null);
-             }
-         }
      }
   },
   register: function() {

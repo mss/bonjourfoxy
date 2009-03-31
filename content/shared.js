@@ -8,8 +8,8 @@ function checkResolver(context) {
     }
     else if (returnCode==1)
     {
-        var returnPayload = result.queryElementAt(1,Components.interfaces.nsIArray)
         var re = new RegExp(/(\${(srv:hostname|srv:port|txtvalue:[a-z]+|iftxtkey:[a-z]+:[a-z0-9@\-\:]+|iftxtvalue:[a-z]+:[a-z0-9@\-\:]*)})/gi);
+        var returnPayload = result.queryElementAt(1,Components.interfaces.nsIArray)
         var srv = {
             hostname: returnPayload.queryElementAt(0,Components.interfaces.nsIVariant),
             port: returnPayload.queryElementAt(1,Components.interfaces.nsIVariant),
@@ -22,7 +22,21 @@ function checkResolver(context) {
             var txtValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant);
             txtRecords[txtKey]=txtValue;
         }
-        var scheme = 'http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}';
+        // var scheme = 'http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}';
+        var scheme = "";
+        var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService);        
+        var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                        .getService(Components.interfaces.nsIProperties)
+                        .get("ProfD", Components.interfaces.nsIFile);
+        dbFile.append("bonjourfoxy.sqlite");
+        var DBConn = storageService.openDatabase(dbFile);
+        var sqlGetScheme = DBConn.createStatement("SELECT scheme FROM Services WHERE regtype=?1");
+        sqlGetScheme.bindUTF8StringParameter(0, context.regType);
+        while(sqlGetScheme.executeStep()) {
+            scheme = sqlGetScheme.getUTF8String(0);
+        }
+
         while(scheme.match(re))  {
             var m = re.exec(scheme);
             var strSearch = m[0];
@@ -58,6 +72,7 @@ function checkResolver(context) {
             scheme=scheme.replace(strSearch,strReplace);
         }
         var finalurl=scheme.replace('\\{','{').replace('\\}','}');
+        dump('xp '+Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService).isExposedProtocol(finalurl.split(':')[0])+"\n");
         switch(context.target)
         {
             case "tab":

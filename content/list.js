@@ -14,19 +14,10 @@ function listEventHandler(event)    {
             linkTarget="tab";
         }
     }
-    /*
-    var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    var serviceInfo = obj.IDSDMANAGER.getServiceInfoFromId(serviceId);
-    var serviceName = serviceInfo.queryElementAt(0,Components.interfaces.nsIVariant);
-    var regType = serviceInfo.queryElementAt(1,Components.interfaces.nsIVariant);
-    var regDomain = serviceInfo.queryElementAt(2,Components.interfaces.nsIVariant);
-    */
-    openLink(linkTarget,serviceId);// serviceName,regType,regDomain);
+    openLink(linkTarget,serviceId);
 }
 
 function updateServiceList()    {
-    var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    obj.discoverServices("_http._tcp.",null);
     var serviceList = document.getElementById('serviceList');
     serviceList.setAttribute('onclick','listEventHandler(event)');
     if (serviceList.hasChildNodes())
@@ -35,15 +26,28 @@ function updateServiceList()    {
             serviceList.removeChild(serviceList.firstChild);
         }
     }
-    var discoveredServices = obj.getDiscoveredServices("_http._tcp.",null);
-    for(var i=0;i<discoveredServices.length;i++)
-    {
-        var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
-        var serviceName = discoveredService.queryElementAt(2,Components.interfaces.nsIVariant);
-        var listItem = document.createElement('listitem');
-        listItem.setAttribute('label', serviceName);
-        listItem.setAttribute('value', discoveredService.queryElementAt(3,Components.interfaces.nsIVariant));
-        serviceList.appendChild(listItem);
+    var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                    .getService(Components.interfaces.mozIStorageService);        
+    var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                    .getService(Components.interfaces.nsIProperties)
+                    .get("ProfD", Components.interfaces.nsIFile);
+    dbFile.append("bonjourfoxy.sqlite");
+    var DBConn = storageService.openDatabase(dbFile);
+    var sqlGetRegTypes = DBConn.createStatement("SELECT regtype, label FROM Services");
+    while(sqlGetRegTypes.executeStep()) {
+        var regType = sqlGetRegTypes.getUTF8String(0);
+        var label = sqlGetRegTypes.getUTF8String(1);
+        var discoveredServices = dsdManager.getDiscoveredServices(regType,null);
+        for(var i=0;i<discoveredServices.length;i++)
+        {
+            var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
+            var serviceName = discoveredService.queryElementAt(2,Components.interfaces.nsIVariant);
+            var listItem = document.createElement('listitem');
+            listItem.setAttribute('label', [serviceName,' (',label,')'].join(''));
+            listItem.setAttribute('value', discoveredService.queryElementAt(3,Components.interfaces.nsIVariant));
+            serviceList.appendChild(listItem);
+        }
     }
 }
 
@@ -52,20 +56,62 @@ function dsdObserver()
   this.register();
 }
 dsdObserver.prototype = {
+  handlers: {},
+  removeHandlerObservers: function()  {
+        for (property in this.handlers) {
+            this.observerService.removeObserver(this, "dsd_service_add:" + property, false);
+            this.observerService.removeObserver(this, "dsd_service_rmv:" + property, false);
+        }
+  },
+  addHandlerObservers: function() {
+        for (property in this.handlers) {
+            this.observerService.addObserver(this, "dsd_service_add:" + property, false);
+            this.observerService.addObserver(this, "dsd_service_rmv:" + property, false);
+        }
+  },
+  setHandlers: function() {
+        this.removeHandlerObservers();
+        var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService);        
+        var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                        .getService(Components.interfaces.nsIProperties)
+                        .get("ProfD", Components.interfaces.nsIFile);
+        dbFile.append("bonjourfoxy.sqlite");
+        var DBConn = storageService.openDatabase(dbFile);
+        var sqlGetRegTypes = DBConn.createStatement("SELECT regtype, label FROM Services");
+        var newHandlers = {};
+        while(sqlGetRegTypes.executeStep()) {
+            var regType = sqlGetRegTypes.getUTF8String(0);
+            var label = sqlGetRegTypes.getUTF8String(0);
+            newHandlers[regType] = label;
+        }
+        this.handlers = newHandlers;
+        this.addHandlerObservers();
+  },
   observe: function(subject, topic, data) {
-    updateServiceList();
+    if (topic=="nsPref:changed")    {
+        if (data=="hts")    {
+            this.setHandlers();
+        }
+    }
+    if (topic.match(/^dsd_service_/)) {
+        updateServiceList();   
+    }
   },
   register: function() {
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+    this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
+        .getService(Components.interfaces.nsIPrefService)
+        .getBranch("extensions.bonjourfoxy.");
+    this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    this.prefs.addObserver("", this, false);
+    this.observerService = Components.classes["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
-    observerService.addObserver(this, "dsd_service_add__http._tcp.", false);
-    observerService.addObserver(this, "dsd_service_rmv__http._tcp.", false);
+    this.setHandlers();
   },
   unregister: function() {
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+    this.removeHandlerObservers();
+    this.observerService = Components.classes["@mozilla.org/observer-service;1"]
                             .getService(Components.interfaces.nsIObserverService);
-    observerService.removeObserver(this, "dsd_service_add__http._tcp.", false);
-    observerService.removeObserver(this, "dsd_service_rmv__http._tcp.", false);
   }
 }
 

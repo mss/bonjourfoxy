@@ -19,39 +19,106 @@ BFNotifier.prototype = {
             // this is run very early, right after XPCOM is initialized, but before
             // user profile information is applied. Register ourselves as an observer
             // for 'profile-after-change' and 'quit-application'.
-            var obsSvc = CC["@mozilla.org/observer-service;1"].getService(CI.nsIObserverService);
-            obsSvc.addObserver(this, "profile-after-change", true);
-            obsSvc.addObserver(this, "quit-application", true);
+            this.obsSvc = CC["@mozilla.org/observer-service;1"].getService(CI.nsIObserverService);
+            this.obsSvc.addObserver(this, "profile-after-change", true);
+            this.obsSvc.addObserver(this, "quit-application", true);
             break;
         
         case "profile-after-change":
+            /*
             var observerService = Components.classes["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
             observerService.addObserver(this, "dsd_service_add__http._tcp.", false);
+            */
+            this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService)
+                .getBranch("extensions.bonjourfoxy.");
+            this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+            this.prefs.addObserver("", this, false);
+            this.displayAlerts = this.prefs.getBoolPref("alerts");
+            dump (['alerts:',this.displayAlerts,"\n"].join(" "));
+            this.dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+            this.alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
+            this.setHandlers();
         break;
         
         case "profile-before-change":
+            /*
             var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
             observerService.removeObserver(this, "dsd_service_add__http._tcp.", false);
+            */
+            this.removeHandlerObservers();
+            this.prefs.removeObserver("", this);
+            this.dsdManager = null;
+            this.alertsService = null;
+            this.handlers = {};
+        break;
+        
+        case "nsPref:changed":
+            switch (aData)   {
+                case "hts":
+                    this.setHandlers();
+                break;
+                case "alerts":
+                    this.displayAlerts = this.prefs.getBoolPref("alerts");
+                break;
+                default:
+                    dump (['nsPref','changed',data,"\n"].join(' '));
+            }
         break;
         
         default:
-             if (aTopic=="dsd_service_add__http._tcp.")
-             {
-                 var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-                 var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-                 prefs = prefs.getBranch("extensions.bonjourfoxy.");
-                 if (prefs.getBoolPref("alerts"))
+             dump(aTopic + "\n");
+             if (aTopic.match(/^dsd_service_add/))   {
+                 var newType = aTopic.split(":")[1];
+                 if (this.handlers[newType])
                  {
-                     // kludgey....
-                     if (dsdManager.getServiceNameCount(aData)==1)  {
-                         var alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
-                         alertsService.showAlertNotification(null,"Service Discovered",aData,null,null,null);
+                     if (this.displayAlerts)
+                     {
+                        var serviceInfo = this.dsdManager.getServiceInfoFromId(aData);
+                        var serviceName = serviceInfo.queryElementAt(0, Components.interfaces.nsIVariant);
+                        var regType = serviceInfo.queryElementAt(1, Components.interfaces.nsIVariant);
+                        var regSubTypes = serviceInfo.queryElementAt(3, Components.interfaces.nsIVariant);
+                        var regDomain = serviceInfo.queryElementAt(2, Components.interfaces.nsIVariant);
+                        if (this.dsdManager.getServiceNameCount(serviceName)==1)  {
+                            this.alertsService.showAlertNotification(null,"Service Discovered",serviceName,null,null,null);
+                        }
                      }
                  }
-             }
+            }
         }
+    },
+    handlers: {},
+    removeHandlerObservers: function()  {
+        for (property in this.handlers) {
+            this.obsSvc.removeObserver(this, "dsd_service_add:" + property, false);
+        }
+    },
+    addHandlerObservers: function() {
+        for (property in this.handlers) {
+            this.obsSvc.addObserver(this, "dsd_service_add:" + property, false);
+        }
+    },
+    setHandlers: function() {
+        this.removeHandlerObservers();
+        var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService);        
+        var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                        .getService(Components.interfaces.nsIProperties)
+                        .get("ProfD", Components.interfaces.nsIFile);
+        dbFile.append("bonjourfoxy.sqlite");
+        var DBConn = storageService.openDatabase(dbFile);
+        var sqlGetRegTypes = DBConn.createStatement("SELECT regtype, label FROM Services");
+        var newHandlers = {};
+        while(sqlGetRegTypes.executeStep()) {
+            var regType = sqlGetRegTypes.getUTF8String(0);
+            var label = sqlGetRegTypes.getUTF8String(0);
+            newHandlers[regType] = label;
+            this.dsdManager.discoverServices(regType,null);
+        }
+        this.handlers = newHandlers;
+        this.addHandlerObservers();
     }
 };
 

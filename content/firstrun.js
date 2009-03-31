@@ -5,12 +5,14 @@ function FirstRunCheck()
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                 .getService(Components.interfaces.nsIPrefService);
     prefs = prefs.getBranch("extensions.bonjourfoxy.");
-    var curFirstRunRev=prefs.getIntPref("firstRunRev", false);
-    var newFirstRunRev=1;
-    if(curFirstRunRev!=newFirstRunRev)   {
-        prefs.setIntPref("firstRunRev",newFirstRunRev);
-        if (curFirstRunRev==0)  {
+    var curRev=prefs.getIntPref("rev", false);
+    var newRev=1;
+    var now=new Date();
+    if(curRev!=newRev)   {
+        prefs.setIntPref("rev",newRev);
+        if (curRev==0)  {
             databaseInit();
+            prefs.setIntPref("hts", Math.round(now.getTime()/1000.0));
             setTimeout("AddToolbarItem();", 0);
             setTimeout('toggleSidebar("viewBonjourServices");',2);
         }
@@ -86,6 +88,7 @@ VALUES ("_ssh._tcp.", "ssh://${srv:hostname}:${srv:port}/","SSH");  \
             break;
         }
     }
+    
 }
 
 function AddToolbarItem()
