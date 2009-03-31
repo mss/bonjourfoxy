@@ -22,7 +22,11 @@ interface IDSDMANAGER : nsISupports
     
     PRUint32 getServiceNameCount(in AString serviceName);
     
-    nsIArray resolveService(in AString serviceName, in AString regType, in AString regDomain, in long timeout);
+    nsIArray resolveService(in AString serviceName, in AString regType, in AString regDomain);
+    
+    nsIArray resolveServiceFromId(in long serviceId);
+    
+    nsIArray getServiceInfoFromId(in long serviceId);
     
     AString addService(in AString serviceName, in AString regType, in AString targetHost, in long targetPort, in AString txtKey, in AString txtValue, in AString regDomain);
     

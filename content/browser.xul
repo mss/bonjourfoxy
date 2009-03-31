@@ -5,62 +5,59 @@
 <script>
 <![CDATA[
 
-netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-
 var ServiceBrowser = {
     IDSDMANAGER: Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER),
-    known:  [
-        '_http._tcp.',
-    ],
     removeChildren: function (el) {
         while (el.firstChild)   {
             el.removeChild(el.firstChild);
         }
     },
-    resolveService: function(serviceName,regType,regDomain) {
+    resolveService: function(serviceId) {
+        var serviceInfo = ServiceBrowser.IDSDMANAGER.getServiceInfoFromId(serviceId);
         var context = new Object();
         context.count=0;
-        context.serviceName = unescape(serviceName);
-        context.regType = unescape(regType);
-        context.regDomain = unescape(regDomain);
-        ServiceBrowser.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
+        context.serviceId = serviceId;
+        context.serviceName = serviceInfo.queryElementAt(0,Components.interfaces.nsIVariant);
+        context.regType = serviceInfo.queryElementAt(1,Components.interfaces.nsIVariant);
+        context.regSubTypes = serviceInfo.queryElementAt(3,Components.interfaces.nsIVariant);
+        context.regDomain = serviceInfo.queryElementAt(2,Components.interfaces.nsIVariant);
+        ServiceBrowser.IDSDMANAGER.resolveServiceFromId(serviceId);
         ServiceBrowser.checkResolver(context);
     },
     checkResolver: function(context) {
-        var result = ServiceBrowser.IDSDMANAGER.resolveService(context.serviceName,context.regType,context.regDomain,3);
-        if (result.length>0)    {
-            if (result.length==1)   {
-                var errorArray = result.queryElementAt(0,Components.interfaces.nsIArray)
-                var error = errorArray.queryElementAt(0,Components.interfaces.nsIVariant);
-                var status = errorArray.queryElementAt(1,Components.interfaces.nsIVariant);
-                if (error==98)  {
-                    window.alert("Timed out resolving '" + context.serviceName + "'");
-                } else {
-                    window.alert("Error " + error + " State: " + status);
-                }
-            } else {
-                document.getElementById('tbServiceName').setAttribute('value',context.serviceName);
-                document.getElementById('tbRegistrationType').setAttribute('value',context.regType);
-                document.getElementById('tbRegistrationDomain').setAttribute('value',context.regDomain);
-                document.getElementById('tbHost').setAttribute('value',result.queryElementAt(0,Components.interfaces.nsIVariant));
-                document.getElementById('tbPort').setAttribute('value',result.queryElementAt(1,Components.interfaces.nsIVariant));
-                var txtRecordsTxt = "None";
-                var txtRecords = result.queryElementAt(2,Components.interfaces.nsIArray);
-                for (var i=0;i<txtRecords.length;i++)   {
-                    var txtRecord = txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
-                    var txtRecordKey = txtRecord.queryElementAt(0,Components.interfaces.nsIVariant);
-                    var txtRecordValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
-                    if (txtRecordKey!='')   {
-                        if (txtRecordsTxt=="None")   {
-                            txtRecordsTxt = "";
-                        }
-                        txtRecordsTxt += [txtRecordKey,'=',txtRecordValue,"\n"].join('');
-                        }
+        var result = ServiceBrowser.IDSDMANAGER.resolveServiceFromId(context.serviceId);
+        var returnCode = result.queryElementAt(0,Components.interfaces.nsIVariant);
+        if (returnCode==-1)
+        {
+            window.alert(['Unable to resolve service - (',returnCode,')'].join(''));
+        }
+        else if (returnCode==1)
+        {
+            var returnPayload = result.queryElementAt(1,Components.interfaces.nsIArray)
+            document.getElementById('tbServiceName').setAttribute('value',context.serviceName);
+            document.getElementById('tbRegistrationType').setAttribute('value',context.regType);
+            document.getElementById('tbRegistrationSubTypes').setAttribute('value',context.regSubTypes);
+            document.getElementById('tbRegistrationDomain').setAttribute('value',context.regDomain);
+            document.getElementById('tbHost').setAttribute('value',returnPayload.queryElementAt(0,Components.interfaces.nsIVariant));
+            document.getElementById('tbPort').setAttribute('value',returnPayload.queryElementAt(1,Components.interfaces.nsIVariant));
+            var txtRecordsTxt = "None";
+            var txtRecords = returnPayload.queryElementAt(2,Components.interfaces.nsIArray);
+            for (var i=0;i<txtRecords.length;i++)   {
+                var txtRecord = txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
+                var txtRecordKey = txtRecord.queryElementAt(0,Components.interfaces.nsIVariant);
+                var txtRecordValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
+                if (txtRecordKey!='')   {
+                    if (txtRecordsTxt=="None")   {
+                        txtRecordsTxt = "";
                     }
-                document.getElementById('tbTextRecords').setAttribute('value',txtRecordsTxt);
-                document.getElementById('gpServiceInfo').setAttribute('style','');
-            }
-        } else {
+                    txtRecordsTxt += [txtRecordKey,'=',txtRecordValue,"\n"].join('');
+                    }
+                }
+            document.getElementById('tbTextRecords').setAttribute('value',txtRecordsTxt);
+            document.getElementById('gpServiceInfo').setAttribute('style','');
+        }
+        else if (returnCode==0)
+        {
             context.timer = setTimeout(function(){ServiceBrowser.checkResolver(context)}, 1000);
         }
     },
@@ -72,35 +69,35 @@ var ServiceBrowser = {
         }
     },
     appendListItemsFromServices: function(lb,services,protocol) {
-        var showUnknown = true;
         for (var i=0; i<services.length;i++) {
             var service = services.queryElementAt(i,Components.interfaces.nsIArray);
             var regtype = service.queryElementAt(2,Components.interfaces.nsIVariant) + ['._',protocol,'.'].join('');
             var rServices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices(regtype,null);
-            if (showUnknown||ServiceBrowser.known.indexOf(regtype)!=-1) {
-                for (var j=0; j<rServices.length;j++)   {
-                    var rService = rServices.queryElementAt(j,Components.interfaces.nsIArray);
-                    var newListItem = document.createElement('listitem');
-                    var newLabelDomain = document.createElement('label');
-                    var newLabelRegistrationType = document.createElement('label');
-                    var newLabelServiceName = document.createElement('label');
-                    newLabelDomain.setAttribute('value',rService.queryElementAt(0,Components.interfaces.nsIVariant));
-                    newLabelDomain.setAttribute('flex',1);
-                    newLabelRegistrationType.setAttribute('value',rService.queryElementAt(1,Components.interfaces.nsIVariant));
-                    newLabelRegistrationType.setAttribute('flex',1);
-                    newLabelServiceName.setAttribute('value',rService.queryElementAt(2,Components.interfaces.nsIVariant));
-                    newLabelServiceName.setAttribute('flex',1);
-                    newListItem.appendChild(newLabelServiceName);
-                    newListItem.appendChild(newLabelRegistrationType);
-                    newListItem.appendChild(newLabelDomain);
-                    newListItem.setAttribute('onclick','ServiceBrowser.resolveService("' + [
-                    escape(rService.queryElementAt(2,Components.interfaces.nsIVariant)),
-                    escape(rService.queryElementAt(1,Components.interfaces.nsIVariant)),
-                    escape(rService.queryElementAt(0,Components.interfaces.nsIVariant))
-                    ].join('","')+'");');
-                    newListItem.setAttribute('style','cursor: pointer;');
-                    lb.appendChild(newListItem);
-                }
+            for (var j=0; j<rServices.length;j++)   {
+                var rService = rServices.queryElementAt(j,Components.interfaces.nsIArray);
+                var newListItem = document.createElement('listitem');
+                var newLabelDomain = document.createElement('label');
+                var newLabelRegistrationType = document.createElement('label');
+                var newLabelServiceName = document.createElement('label');
+                var newLabelRegistrationSubTypes = document.createElement('label');
+                newLabelDomain.setAttribute('value',rService.queryElementAt(0,Components.interfaces.nsIVariant));
+                newLabelDomain.setAttribute('crop','center');
+                newLabelDomain.setAttribute('flex',1);
+                newLabelRegistrationType.setAttribute('value',rService.queryElementAt(1,Components.interfaces.nsIVariant));
+                newLabelRegistrationType.setAttribute('crop','center');
+                newLabelRegistrationType.setAttribute('flex',1);
+                newLabelServiceName.setAttribute('value',rService.queryElementAt(2,Components.interfaces.nsIVariant));
+                newLabelServiceName.setAttribute('crop','center');
+                newLabelServiceName.setAttribute('flex',1);
+                newLabelRegistrationSubTypes.setAttribute('value',rService.queryElementAt(4,Components.interfaces.nsIVariant));
+                newLabelRegistrationSubTypes.setAttribute('crop','center');
+                newLabelRegistrationSubTypes.setAttribute('flex',1);
+                newListItem.appendChild(newLabelServiceName);
+                newListItem.appendChild(newLabelRegistrationType);
+                newListItem.appendChild(newLabelDomain);
+                // newListItem.appendChild(newLabelRegistrationSubTypes);
+                newListItem.setAttribute('value',rService.queryElementAt(3,Components.interfaces.nsIVariant));
+                lb.appendChild(newListItem);
             }
         }
     },
@@ -119,57 +116,77 @@ var ServiceBrowser = {
             } else {
             var tcpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_tcp.",null);
             var udpservices = ServiceBrowser.IDSDMANAGER.getDiscoveredServices("_udp.",null);
-            }                
-        ServiceBrowser.discoverServicesFromServices(tcpservices,'tcp');
+            }
+        ServiceBrowser.discoverServicesFromServices(tcpservices,'tcp');                
         ServiceBrowser.discoverServicesFromServices(udpservices,'udp');
         ServiceBrowser.appendListItemsFromServices(lbServices,tcpservices,'tcp');
         ServiceBrowser.appendListItemsFromServices(lbServices,udpservices,'udp');
     }
 }
 
-document.addEventListener("DOMContentLoaded", ServiceBrowser.renderServices, false);
+function bodgie(count) {
+    ServiceBrowser.renderServices()
+    if (count<3) {
+        setTimeout(function(){bodgie(count++);},300);
+    }
+}    
+document.addEventListener("DOMContentLoaded", function(){bodgie(0);}, false);
 
 ]]>
 </script>
 <vbox flex="1" style="padding: 0; margin: 0;">
-    <listbox id="lbServices" rows="5" flex="1" style="padding: 0; margin: 0;">
+    <listbox id="lbServices" rows="5" flex="1" style="padding: 0; margin: 0;" onselect="ServiceBrowser.resolveService(event.explicitOriginalTarget.value);">
       <listcols>
-	<listcol flex="1" />
-	<splitter class="tree-splitter" />
-	<listcol flex="1" />
-	<splitter class="tree-splitter" />
-	<listcol flex="1" />
+    	<listcol flex="1" />
+    	<splitter class="tree-splitter" />
+    	<listcol flex="1" />
+    	<splitter class="tree-splitter" />
+    	<listcol flex="1" />
+    	<!--//
+    	<splitter class="tree-splitter" />
+    	<listcol flex="1" />
+    	//-->
       </listcols>
       <listhead>
-	<listheader label="Service Name" />
-	<listheader label="Registration Type" />
-	<listheader label="Domain" />
+    	<listheader label="Service Name" />
+    	<listheader label="Registration Type" />
+    	<listheader label="Registration Domain" />
+    	<!--//
+    	<listheader label="Registration Subtypes" />
+    	//-->
       </listhead>
     </listbox>
     <groupbox id="gpServiceInfo" style="display: none;">
     <hbox align="center">
-    <label style="width: 10em;" value="Service Name"/>
+    <label style="width: 11em;" value="Service Name"/>
     <textbox flex="1" value="Service Name" id="tbServiceName" readonly="true" />
     </hbox>
     <hbox align="center">
-    <label style="width: 10em;" value="Registration Type"/>
+    <label style="width: 11em;" value="Registration Type"/>
     <textbox flex="1" value="Registration Type" id="tbRegistrationType" readonly="true" />
     </hbox>
     <hbox align="center">
-    <label style="width: 10em;" value="Registration Domain"/>
+    <label style="width: 11em;" value="Registration Subtypes*"/>
+    <textbox flex="1" value="Registration Type" id="tbRegistrationSubTypes" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="Registration Domain"/>
     <textbox flex="1" value="Registration Domain" id="tbRegistrationDomain" readonly="true" />
     </hbox>
     <hbox align="center">
-    <label style="width: 10em;" value="Host"/>
+    <label style="width: 11em;" value="Host"/>
     <textbox flex="1" value="Host" id="tbHost" readonly="true" />
     </hbox>
     <hbox align="center">
-    <label style="width: 10em;" value="Port"/>
+    <label style="width: 11em;" value="Port"/>
     <textbox flex="1" value="Port" id="tbPort" readonly="true" />
     </hbox>
     <hbox>
-    <label style="width: 10em; padding-top: 5px;" value="Text Records"/>
+    <label style="width: 11em; padding-top: 5px;" value="Text Records"/>
     <textbox flex="1" multiline="true" id="tbTextRecords" readonly="true" rows="7" />
+    </hbox>
+    <hbox>
+    <spacer flex="1" /><description>* Registration Subtypes only discovered when explictly sought</description>
     </hbox>
     </groupbox>
     <hbox>

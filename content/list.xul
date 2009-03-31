@@ -15,7 +15,7 @@
   <script type="application/x-javascript" 
           src="chrome://bonjourfoxy/content/shared.js" />
 
-<menupopup id="targetmenu" oncommand="contextListEventHandler(event);">
+<menupopup id="targetmenu" oncommand="listEventHandler(event);">
     <menuitem label="Open" value="current"/>
     <menuitem label="Open in New Tab" value="tab"/>
     <menuitem label="Open in New Window" value="window"/>

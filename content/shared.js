@@ -1,66 +1,98 @@
 function checkResolver(context) {
     context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    var result = new context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
-    if (result.length>0)    {
-        if (result.length==1)   {
-            var errorArray = result.queryElementAt(0,Components.interfaces.nsIArray)
-            var error = errorArray.queryElementAt(0,Components.interfaces.nsIVariant);
-            var status = errorArray.queryElementAt(1,Components.interfaces.nsIVariant);
-            if (error==98)  {
-                window.alert("Timed out resolving '" + context.serviceName + "'");
-            } else {
-                window.alert("Error " + error + " State: " + status);
-            }
-        } else {
-            var finalurl="http://";
-            var targetHostname = result.queryElementAt(0,Components.interfaces.nsIVariant);
-            finalurl += targetHostname;
-            finalurl += ":" + result.queryElementAt(1,Components.interfaces.nsIVariant);
-            var txtRecords = result.queryElementAt(2,Components.interfaces.nsIArray);
-            for (var i=0;i<txtRecords.length;i++)   {
-                var txtRecord = txtRecords.queryElementAt(i,Components.interfaces.nsIArray);
-                if (txtRecord.queryElementAt(0,Components.interfaces.nsIVariant)=="path")  {
-                    var uri = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant)
-                    if (uri[0]=="/")    {
-                        finalurl += uri;
-                    } else {
-                        finalurl += "/" + uri;
-                    }
-                }
-            }
-            switch(context.target)
-            {
-                case "tab":
-                    var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
-                    win.openUILinkIn(finalurl, 'tab');
-                break;
-                case "window":
-                    var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
-                    win.openUILinkIn(finalurl, 'window');
-                break;
-                default:
-                    window._content.location=finalurl;
-            }
+    var result = context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain);
+    var returnCode = result.queryElementAt(0,Components.interfaces.nsIVariant);
+    if (returnCode==-1)
+    {
+        window.alert(['Unable to resolve service - (',returnCode,')'].join(''));
+    }
+    else if (returnCode==1)
+    {
+        var returnPayload = result.queryElementAt(1,Components.interfaces.nsIArray)
+        var re = new RegExp(/(\${(srv:hostname|srv:port|txtvalue:[a-z]+|iftxtkey:[a-z]+:[a-z0-9@\-\:]+|iftxtvalue:[a-z]+:[a-z0-9@\-\:]*)})/gi);
+        var srv = {
+            hostname: returnPayload.queryElementAt(0,Components.interfaces.nsIVariant),
+            port: returnPayload.queryElementAt(1,Components.interfaces.nsIVariant),
         }
-    } else {
+        var txtRecords = {};
+        var txtRecordsArray = returnPayload.queryElementAt(2,Components.interfaces.nsIArray);
+        for (var i=0;i<txtRecordsArray.length;i++)   {
+            var txtRecord = txtRecordsArray.queryElementAt(i,Components.interfaces.nsIArray);
+            var txtKey = txtRecord.queryElementAt(0,Components.interfaces.nsIVariant);
+            var txtValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant);
+            txtRecords[txtKey]=txtValue;
+        }
+        var scheme = 'http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}';
+        while(scheme.match(re))  {
+            var m = re.exec(scheme);
+            var strSearch = m[0];
+            var strReplace = "";
+            var endReplaceType = m[2].indexOf(':');
+            var endReplaceKey = m[2].indexOf(':',endReplaceType+1);
+            strReplace = (endReplaceKey==-1) ? strReplace : m[2].substring(endReplaceKey+1,m[2].length);
+            endReplaceKey = (endReplaceKey==-1) ? m[2].length : endReplaceKey;
+            var replaceType = m[2].split(":")[0];
+            var replaceKey = m[2].split(":")[1];
+            switch(replaceType)  {
+                case "srv":
+                    if (srv[replaceKey])    {
+                        strReplace = srv[replaceKey].toString().replace('{','\\{').replace('}','\\}');
+                    }
+                break;
+                case "txtvalue":
+                    if (txtRecords[replaceKey]) {
+                        strReplace = txtRecords[replaceKey].toString().replace('{','\\{').replace('}','\\}');
+                    }
+                break;
+                case "iftxtkey":
+                    if (!txtRecords.hasOwnProperty(replaceKey)) {
+                        strReplace = "";
+                    }
+                break;            
+                case "iftxtvalue":
+                    if (!txtRecords[replaceKey]) {
+                        strReplace = "";
+                    }
+                break;
+            }
+            scheme=scheme.replace(strSearch,strReplace);
+        }
+        var finalurl=scheme.replace('\\{','{').replace('\\}','}');
+        switch(context.target)
+        {
+            case "tab":
+                var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
+                win.openUILinkIn(finalurl, 'tab');
+            break;
+            case "window":
+                var win = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('navigator:browser');
+                win.openUILinkIn(finalurl, 'window');
+            break;
+            default:
+                window._content.location=finalurl;
+        }
+    }
+    else if (returnCode==0)
+    {
         context.timer = setTimeout(function(){checkResolver(context)}, 1000);
     }
 }
 
-function openLink(target,serviceName,regType,regDomain) {
+function openLink(target,serviceId) {
+    var context = new Object();
+    context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    var serviceInfo = context.dsdmanager.IDSDMANAGER.getServiceInfoFromId(serviceId);
     if (target=="default")  {
          var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                         .getService(Components.interfaces.nsIPrefService);
          prefs = prefs.getBranch("extensions.bonjourfoxy.");
          target = prefs.getCharPref("target");
     }
-    var context = new Object();
     context.target = target;
     context.count=0;
-    context.serviceName = unescape(serviceName);
-    context.regType = unescape(regType);
-    context.regDomain = unescape(regDomain);
-    context.dsdmanager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    context.serviceName = serviceInfo.queryElementAt(0,Components.interfaces.nsIVariant);
+    context.regType = serviceInfo.queryElementAt(1,Components.interfaces.nsIVariant);
+    context.regDomain = serviceInfo.queryElementAt(2,Components.interfaces.nsIVariant);
     context.dsdmanager.resolveService(context.serviceName,context.regType,context.regDomain,3);
     checkResolver(context);
 }

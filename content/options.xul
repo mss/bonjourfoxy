@@ -5,17 +5,115 @@
      title="BonjourFoxy Options"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
      xmlns:html="http://www.w3.org/1999/xhtml"
-     buttons="accept">
- 
+     buttons="accept"
+     width="600"
+     height="450">
+<script>
+<![CDATA[
+
+function serviceHandler(event)  {
+    var mode = event.explicitOriginalTarget.id;
+    var regtypeParam = "new";
+    var lbServices = document.getElementById('lbServices');
+    switch (mode)
+    {
+        case "delete":
+            var serviceID = lbServices.selectedItem.value;
+            var label = lbServices.selectedItem.childNodes[0].value;
+            var regtype = lbServices.selectedItem.childNodes[1].value;
+            var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                            .getService(Components.interfaces.nsIPromptService);
+            var result = prompts.confirm(window, "Delete Handler", ["Are you sure you want to delete ",label,"(",regtype,")?"].join(''));
+            if (result) {
+                var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                                    .getService(Components.interfaces.mozIStorageService);
+                
+                var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                                .getService(Components.interfaces.nsIProperties)
+                                .get("ProfD", Components.interfaces.nsIFile);
+                dbFile.append("bonjourfoxy.sqlite");
+                var DBConn = storageService.openDatabase(dbFile);
+                try {
+                    DBConn.executeSimpleSQL("DELETE FROM Services WHERE id = " + serviceID);
+                }
+                catch (e)   {
+                    window.alert("Error: " + DBConn.lastErrorString);
+                }
+            }
+        break;
+        case "edit":
+            regtypeParam = lbServices.selectedItem.value;
+        case "new":
+            window.openDialog('chrome://bonjourfoxy/content/regtypes.xul','','chrome, dialog, modal',regtypeParam);
+        break;
+        default:
+            window.alert(mode + '?');
+    }
+    lbServices.builder.rebuild();
+}
+
+]]>
+</script>
 <prefpane id="bonjourfoxy-prefpane" label="BonjourFoxy Preferences">
   <preferences>
     <preference id="pref_alerts" name="extensions.bonjourfoxy.alerts" instantApply="true" type="bool"/>
     <preference id="pref_statusbaricon" name="extensions.bonjourfoxy.statusbaricon" instantApply="true" type="bool"/>
     <preference id="pref_target" name="extensions.bonjourfoxy.target" instantApply="true" type="string"/>
   </preferences>
- 
-<html:h2 flex="1" style="text-align: center;">BonjourFoxy Preferences</html:h2>
-<groupbox flex="1">
+<groupbox>
+ <caption style="font-weight: bold; font-size: 1.1em;" value="Service Handlers" />
+ <listbox id="lbServices" datasources="profile:bonjourfoxy.sqlite" ref="*" querytype="storage" flex="1">
+    <listcols>
+	<listcol flex="1" />
+	<splitter class="tree-splitter" />
+	<listcol flex="1" />
+	<!--//
+	<splitter class="tree-splitter" />
+	<listcol flex="1" />
+	//-->
+    </listcols>
+    <listhead>
+	<listheader label="Label" />
+	<listheader label="Registration Type" />
+	<!--//
+	<listheader label="Subtypes" />
+	//-->
+    </listhead>
+  <template>
+    <query>
+SELECT
+    Services.id as id,
+    Services.regtype as regtype,
+    Services.scheme as scheme,
+    Services.label as label,
+    GROUP_CONCAT(
+        DISTINCT ServiceSubtypes.label||'('||ServiceSubtypes.subtype||')'
+    ) as subtypes
+FROM Services
+LEFT OUTER JOIN ServiceSubtypes ON Services.id = ServiceSubtypes.s_id
+GROUP BY Services.regtype, Services.scheme, Services.label;
+    </query>
+    <action>
+      <listitem uri="?id" value="?id">
+        <label value="?label"/>
+        <label value="?regtype"/>
+        <!--//
+        <label value="?subtypes"/>
+        //-->
+      </listitem>
+    </action>
+  </template>
+
+ </listbox>
+ <hbox>
+ <spacer flex="1" />
+ <button label="New" oncommand="serviceHandler(event)" id="new" />
+ <button label="Edit" oncommand="serviceHandler(event)" id="edit" />   
+ <button label="Delete" oncommand="serviceHandler(event)" id="delete" />
+ </hbox>
+</groupbox>
+<groupbox>
+ <caption style="font-weight: bold; font-size: 1.1em;" value="Interface Settings"/>
  <vbox flex="1">
   <hbox>
       <label control="alerts" value="Discovery notifications:"/>
@@ -38,9 +136,9 @@
         </menupopup>
       </menulist>
   </hbox>
+  <hbox><spacer flex="1"/><description>Settings apply instantly</description><spacer flex="1" /></hbox>
  </vbox>
 </groupbox>
-<hbox style='padding-bottom: 30px;'><spacer flex="1"/><description>Settings apply instantly</description><spacer flex="1"/></hbox>
 </prefpane>
  
 </prefwindow>

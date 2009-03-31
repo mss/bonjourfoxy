@@ -1,0 +1,102 @@
+<html>
+<head>
+<style>
+html{
+    -x-system-font:message-box;
+    background-color:-moz-dialog;
+    color:-moz-dialogtext;
+    font-family:-moz-use-system-font;
+    font-size:-moz-use-system-font;
+    font-size-adjust:-moz-use-system-font;
+    font-stretch:-moz-use-system-font;
+    font-style:-moz-use-system-font;
+    font-variant:-moz-use-system-font;
+    font-weight:-moz-use-system-font;
+    line-height:-moz-use-system-font;
+    padding-left:2em;
+    padding-right:2em;
+}
+body{
+    -moz-border-radius-bottomleft:10px;
+    -moz-border-radius-bottomright:10px;
+    -moz-border-radius-topleft:10px;
+    -moz-border-radius-topright:10px;
+    background-color:-moz-field;
+    border:1px solid threedshadow;
+    color:-moz-fieldtext;
+    margin:1em auto 1em auto;
+    width:31em;
+    padding:1.5em 2em 2em 2em;
+    font-family: Helvetica Neue;
+    font-size: 1.1em;
+}
+h5  {
+    margin-top: -1.1em;
+}
+h1,h3  {
+    margin-bottom: 0;
+}
+a   {
+    color: #00c;
+}
+li.note {
+    list-style: none;
+    font-size: 0.7em;
+    margin-top: 0.5em;
+    margin-left: -12px;
+}
+li.note:before {
+    content: "(";
+}
+li.note:after {
+    content: ")";
+}
+ul,p  {
+    margin-top: 0.5em;
+}
+.beta   {
+    color: #c00;
+}
+</style>
+<body>
+<h1>BonjourFoxy <span class='beta'>Beta</span> 0.4</h2>
+<div class='note'>
+<h3>Status Bar Icon</h3>
+<ul style='clear: left;'>
+    <li style='width: 50%; float: right; list-style-image: url("chrome://bonjourfoxy/content/status_color.png");'/> Services found</li>
+    <li style='width: 50%; list-style-image: url("chrome://bonjourfoxy/content/status_bw.png");'/> No services found</li>    
+    <li class='note'>bottom right-hand corner when first installed</li>
+</ul>
+</div>
+<div class='note'>
+<h3>Toolbar Button</h3>
+<ul>
+    <li style='margin-left: -20px; list-style: none;'><div style='background: url("chrome://bonjourfoxy/skin/toolbar-button.png"); clip: rect( 0px 40px 16px 24px); height: 22px; width: 36px; float: left;'/></div>&nbsp;Display or hide sidebar</li>
+    <li class='note'>to the right of 'Home' or far-right when first installed</li>
+</ul>
+</div>
+<div class='note'>
+<h3>Menu Items</h3>
+<ul>
+    <li>Browser - browse all Bonjour Services</li>
+    <li>Sidebar - display or hide sidebar</li>
+    <li>Services Discovered</li>
+    <li class='note'>named BonjourFoxy, just before Tools</li>
+</ul>
+</div>
+<div class='note'>
+<h3>Extension Preferences</h3>
+<ul>
+    <li>Turn on or off service discovery notifications</li>
+    <li>Turn on or off status bar icon</li>
+    <li>Set default link target - current page, new tab or new window</li>
+    <li>Configure service handlers</li>
+    <li class='note'>via Tools &rarr; Add-ons &rarr; BonjourFoxy &rarr; Preferences</li>
+</ul>
+</div>
+<div class='note'>
+<h3>Feedback</h3>
+<p>How'd I do? Comment on the <a href="http://andrew.tj.id.au/projects/bonjourfoxy/">project page</a> or <a href="mailto:andrew@tj.id.au?subject=BonjourFoxy">email me</a></p>
+</div>
+</body>
+</html>

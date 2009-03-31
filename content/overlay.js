@@ -28,7 +28,7 @@ var bonjourfoxy = {
   },
   displayStatusBarIcon: function()  {
     if (this.prefs.getBoolPref("statusbaricon")) {
-        document.getElementById('bonjourStatusIcon').setAttribute("style","");
+        document.getElementById('bonjourStatusIcon').setAttribute("style","display:block;");
     } else {
         document.getElementById('bonjourStatusIcon').setAttribute("style","display:none;");
     }
@@ -59,9 +59,11 @@ var bonjourfoxy = {
   }
 };
 
+/*
 function menuEventHandler(element) {
     window.alert(element.getAttribute('value'));
 };
+*/
 
 function menuAddServices() {
     var menu = document.getElementById("bonjourMenuPopup");
@@ -82,14 +84,12 @@ function menuAddServices() {
     } else {            
         for(var i=0;i<discoveredServices.length;i++)   {
             var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
-            var foo = discoveredService.queryElementAt(2,Components.interfaces.nsIVariant);
             var item = document.createElement('menuitem');
-            item.setAttribute('label', foo);
-            item.setAttribute('oncommand','openLink("default","' + [
-                escape(discoveredService.queryElementAt(2,Components.interfaces.nsIVariant)),
-                escape(discoveredService.queryElementAt(1,Components.interfaces.nsIVariant)),
-                escape(discoveredService.queryElementAt(0,Components.interfaces.nsIVariant))
-                ].join('","')+'");');
+            item.setAttribute('label', discoveredService.queryElementAt(2,Components.interfaces.nsIVariant));
+            item.setAttribute('oncommand', [
+                'openLink("default",',
+                discoveredService.queryElementAt(3,Components.interfaces.nsIVariant),
+                ')'].join(''));
             menu.appendChild(item);
         }
     }
@@ -97,3 +97,48 @@ function menuAddServices() {
 
 window.addEventListener("load", function(e) { bonjourfoxy.startup(); }, false);
 window.addEventListener("unload", function(e) { bonjourfoxy.shutdown(); }, false);
+
+
+function dsdOverlayObserver()
+{
+  this.register();
+}
+dsdOverlayObserver.prototype = {
+  observe: function(subject, topic, data) {
+     var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+     if (obj.getDiscoveredServicesCount("_http._tcp.",null)>0)
+     {
+        document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/status_color.png");
+     } else {
+        document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/transparent.gif");
+     }
+     if (topic=="dsd_service_add__http._tcp.")
+     {
+         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                        .getService(Components.interfaces.nsIPrefService);
+         prefs = prefs.getBranch("extensions.bonjourfoxy.");
+         if (prefs.getBoolPref("alerts"))
+         {
+             // kludgey....
+             if (obj.getServiceNameCount(data)==1)  {
+                 var alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
+                 alertsService.showAlertNotification(null,"Service Discovered",data,null,null,null);
+             }
+         }
+     }
+  },
+  register: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
+    observerService.addObserver(this, "dsd_service_add__http._tcp.", false);
+    observerService.addObserver(this, "dsd_service_rmv__http._tcp.", false);
+  },
+  unregister: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                            .getService(Components.interfaces.nsIObserverService);
+    observerService.removeObserver(this, "dsd_service_add__http._tcp.", false);
+    observerService.removeObserver(this, "dsd_service_rmv__http._tcp.", false);
+  }
+}
+
+var dsdOverlayObserverInstance = new dsdOverlayObserver();

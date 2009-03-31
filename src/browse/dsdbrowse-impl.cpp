@@ -214,17 +214,20 @@ void DNSSD_API CDSDBROWSE::Callback(
             array->AppendElement(oReplyName, PR_FALSE);
             self->mLastName = NS_ConvertUTF8toUTF16(inReplyName);        
     
-    		
             nsCOMPtr<nsIWritableVariant> oReplyType = do_CreateInstance("@mozilla.org/variant;1");        
             oReplyType->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyType)) );
             array->AppendElement(oReplyType, PR_FALSE);
             self->mLastRegType = NS_ConvertUTF8toUTF16(inReplyType);        
-    
     		
             nsCOMPtr<nsIWritableVariant> oReplyDomain = do_CreateInstance("@mozilla.org/variant;1");        
             oReplyDomain->SetAsAUTF8String( NS_ConvertUTF16toUTF8(NS_ConvertUTF8toUTF16(inReplyDomain)) );
             array->AppendElement(oReplyDomain, PR_FALSE);
             self->mLastDomain = NS_ConvertUTF8toUTF16(inReplyDomain); 
+
+            nsCOMPtr<nsIWritableVariant> oRequestType = do_CreateInstance("@mozilla.org/variant;1");        
+            oRequestType->SetAsAUTF8String(NS_ConvertUTF16toUTF8(self->mRegistrationType));
+            array->AppendElement(oRequestType, PR_FALSE);
+                    
         	dsdmanager->HandleEvent(NS_LITERAL_STRING("browse"),PR_FALSE,array);    	
         } else {       
             self->mStatus = 99;

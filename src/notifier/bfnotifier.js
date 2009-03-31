@@ -16,7 +16,6 @@ BFNotifier.prototype = {
     observe: function(aSubject, aTopic, aData) {
     switch(aTopic) {
         case "xpcom-startup":
-            dump(aTopic+"\n");
             // this is run very early, right after XPCOM is initialized, but before
             // user profile information is applied. Register ourselves as an observer
             // for 'profile-after-change' and 'quit-application'.
@@ -26,24 +25,20 @@ BFNotifier.prototype = {
             break;
         
         case "profile-after-change":
-            dump(aTopic+"\n");
             var observerService = Components.classes["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
             observerService.addObserver(this, "dsd_service_add__http._tcp.", false);
         break;
         
         case "profile-before-change":
-            dump(aTopic+"\n");
             var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
             observerService.removeObserver(this, "dsd_service_add__http._tcp.", false);
         break;
         
         default:
-            dump(aTopic + "\n");
              if (aTopic=="dsd_service_add__http._tcp.")
              {
-                 dump(aTopic+"\n");
                  var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
                  var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
                  prefs = prefs.getBranch("extensions.bonjourfoxy.");

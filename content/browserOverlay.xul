@@ -5,6 +5,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script src="overlay.js"/>
   <script src="shared.js"/>
+  <script src="firstrun.js"/>
   <stringbundleset id="stringbundleset">
     <stringbundle id="bonjourfoxy-strings" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
   </stringbundleset>

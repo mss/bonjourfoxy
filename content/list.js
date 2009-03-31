@@ -1,42 +1,34 @@
-function contextListEventHandler(event) {
-    var node = document.popupNode;
-    var pNode = node.parentNode;
-    /*
-    dump("context\n");
-    dump(node.value + "\n");
-    dump(pNode.onclick + "\n");
-    dump(event.target.value + "\n");
-    dump(event.bubbles + "\n");
-    dump(event.type + "\n");
-    dump(event.shiftKey + "\n");
-    dump(event.button + "\n");
-    */
-    pNode.onclick(event);
-}
-
-function listEventHandler(event,target,serviceName,regType,regDomain)   {
-    // dump("list\n");
-    // event.shiftKey 
-    // event.type == "click"
-    if (event.type=="click")    {
-        if (event.button=="0")  {
-            if (event.shiftKey) {
-                openLink("window",serviceName,regType,regDomain);
-            } else {
-                openLink("default",serviceName,regType,regDomain);
-            }
-        } else if (event.button=="1")    {
-            openLink("tab",serviceName,regType,regDomain);
-        }   
-    } if (event.type=="command")    {
-        openLink(event.target.value,serviceName,regType,regDomain);
+function listEventHandler(event)    {
+    if (event.type=='click' && event.button == 2)   { return; } // context menu click
+    var linkTarget="default";
+    var serviceId = event.explicitOriginalTarget.value;
+    if (event.type=='command')  {
+        dump([event.type,event.target.value,document.popupNode.parentNode.value,''].join("\n"));
+        serviceId=document.popupNode.parentNode.value;
+        linkTarget=event.target.value;
+    } else {
+        if (event.shiftKey) {
+            linkTarget="window";
+        }
+        if (event.button=="1") {
+            linkTarget="tab";
+        }
     }
+    /*
+    var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    var serviceInfo = obj.IDSDMANAGER.getServiceInfoFromId(serviceId);
+    var serviceName = serviceInfo.queryElementAt(0,Components.interfaces.nsIVariant);
+    var regType = serviceInfo.queryElementAt(1,Components.interfaces.nsIVariant);
+    var regDomain = serviceInfo.queryElementAt(2,Components.interfaces.nsIVariant);
+    */
+    openLink(linkTarget,serviceId);// serviceName,regType,regDomain);
 }
 
 function updateServiceList()    {
     var obj=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
     obj.discoverServices("_http._tcp.",null);
     var serviceList = document.getElementById('serviceList');
+    serviceList.setAttribute('onclick','listEventHandler(event)');
     if (serviceList.hasChildNodes())
     {
         while (serviceList.firstChild)  {
@@ -48,18 +40,10 @@ function updateServiceList()    {
     {
         var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
         var serviceName = discoveredService.queryElementAt(2,Components.interfaces.nsIVariant);
-        var richlistEl = document.createElement('richlistitem');
-        var descriptionEl = document.createElement('description');
-        descriptionEl.setAttribute('value', serviceName);
-        descriptionEl.setAttribute('crop','center');
-        descriptionEl.setAttribute('flex','1');
-        richlistEl.appendChild(descriptionEl);
-        richlistEl.setAttribute('onclick','listEventHandler(event,"default","' + [
-                escape(discoveredService.queryElementAt(2,Components.interfaces.nsIVariant)),
-                escape(discoveredService.queryElementAt(1,Components.interfaces.nsIVariant)),
-                escape(discoveredService.queryElementAt(0,Components.interfaces.nsIVariant))
-                ].join('","') + '");');
-        serviceList.appendChild(richlistEl);
+        var listItem = document.createElement('listitem');
+        listItem.setAttribute('label', serviceName);
+        listItem.setAttribute('value', discoveredService.queryElementAt(3,Components.interfaces.nsIVariant));
+        serviceList.appendChild(listItem);
     }
 }
 
