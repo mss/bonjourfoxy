@@ -4,8 +4,7 @@
 <?xml-stylesheet href="chrome://browser/skin/places/places.css"?>
 <?xml-stylesheet href="list.css"?>
 
-<page   onload="init();"
-        orient="vertical"
+<page   orient="vertical"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         style="background-color: transparent !important; -moz-appearance: none !important;">
 
@@ -25,7 +24,7 @@
     <treecol id="title" flex="1" primary="true" hideheader="true"/>
   </treecols>
 
-  <treechildren id="serviceListChildren" context="targetmenu" class="sidebar-placesTreechildren" />
+  <treechildren id="serviceListChildren" context="targetmenu" class="sidebar-placesTreechildren" flex="1" />
 </tree>
 
 <script>
@@ -57,21 +56,11 @@ function listEventHandler(event)    {
 }
 
 
+
 var treeView = {
-  regTypes : {},
-  childData : {
-    "Web Sites": [["service1",1],["service2",2],["service3",3]],
-    "Wikis": [["service1",4],["service2",5],["service3",6]],
-  },
-
-  visibleData : [
-    ["Web Sites", true, false, -1],
-    ["Wikis", true, false, -1],
-  ],
-
-  treeBox: null,
+  childData : {},
+  visibleData : [],
   selection: null,
-
   get rowCount()                     { return this.visibleData.length; },
   setTree: function(treeBox)         { this.treeBox = treeBox; },
   getCellText: function(idx, column) { return this.visibleData[idx][0]; },
@@ -81,7 +70,6 @@ var treeView = {
   isSeparator: function(idx)         { return false; },
   isSorted: function()               { return false; },
   isEditable: function(idx, column)  { return false; },
-
   getParentIndex: function(idx) {
     if (this.isContainer(idx)) return -1;
     for (var t = idx - 1; t >= 0 ; t--) {
@@ -123,13 +111,10 @@ var treeView = {
       item[2] = true;
 
       var label = this.visibleData[idx][0];
-      // dump("label: "+label+"\n");
       var toinsert = this.childData[label];
-      // dump("toinsert: "+toinsert+"\n");
       if (toinsert) {
           for (var i = 0; i < toinsert.length; i++) {
             this.visibleData.splice(idx + i + 1, 0, [toinsert[i][0], false, false, toinsert[i][1]]);
-            // dump(idx + i + 1 + "\n");
           }
           this.treeBox.rowCountChanged(idx + 1, toinsert.length);
       }
@@ -139,9 +124,7 @@ var treeView = {
 
   getImageSrc: function(idx, column) {},
   getProgressMode : function(idx,column) {},
-  getCellValue: function(idx, column) {
-    // dump("getCellValue ("+idx+","+column+")\n");
-    },
+  getCellValue: function(idx, column) {},
   cycleHeader: function(col, elem) {},
   selectionChanged: function() {},
   cycleCell: function(idx, column) {},
@@ -149,16 +132,48 @@ var treeView = {
   performActionOnCell: function(action, index, column) {},
   getRowProperties: function(idx, column, prop) {},
   getCellProperties: function(idx, column, prop) {},
-  getColumnProperties: function(column, element, prop) {},
-};
-
-function init() {
-    var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    var storageService = Components.classes["@mozilla.org/storage/service;1"]
-                    .getService(Components.interfaces.mozIStorageService);        
-    var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
-                    .getService(Components.interfaces.nsIProperties)
-                    .get("ProfD", Components.interfaces.nsIFile);
+  getColumnProperties: function(column, element, prop) {}
+}
+  
+var treeManager = {
+  visibleDataOpenMap: {},
+  regtypes: {},
+  startup: function() {
+    this.dsdManager = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch("extensions.bonjourfoxy.");
+    this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    this.prefs.addObserver("", this, false);
+    this.observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+    this.setRegtypeObservers();
+    this.updateServices();
+    document.getElementById("serviceList").view = treeView;
+  },
+  shutdown: function() {
+    this.removeRegtypeObservers();
+    this.prefs.removeObserver("", this);
+  },
+  removeRegtypeObservers: function()    {
+    for (regtype in this.regtypes)    {
+        this.observerService.removeObserver(this, "dsd_service_rmv:"+regtype, false);
+        this.observerService.removeObserver(this, "dsd_service_add:"+regtype, false);
+    }
+  },
+  observe: function(subject, topic, data) {
+    if (topic == "nsPref:changed")  {
+        if (data=="hst")    {
+            this.setRegtypeObservers();
+            this.updateServices();
+            setTimeout(this.updateServices, 1000); // repoll in case of slow
+            setTimeout(this.updateServices, 2000); // responses back
+        }
+    }
+    if (topic.match(/^dsd_service_/)) {
+        this.updateServices();
+    }
+  },
+  updateRegtypes: function()    {
+    var storageService = Components.classes["@mozilla.org/storage/service;1"].getService(Components.interfaces.mozIStorageService);        
+    var dbFile = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile);
     dbFile.append("bonjourfoxy.sqlite");
     var DBConn = storageService.openDatabase(dbFile);
     var sqlServices = DBConn.createStatement("                          \
@@ -171,39 +186,44 @@ SELECT                                                                  \
 FROM Services                                                           \
 LEFT OUTER JOIN ServiceSubtypes ON Services.id = ServiceSubtypes.s_id   \
 GROUP BY Services.regtype, Services.scheme, Services.label;             ");
-    var newVisibleData = [];
-    var newRegTypes = {};
-    var newChildData = {};
+    var newRegtypes={};
     while(sqlServices.executeStep()) {
         var label = sqlServices.getUTF8String(0);
         var regtype = sqlServices.getUTF8String(1);
         try { var subtypePairs = sqlServices.getUTF8String(2).split(","); }
         catch (e) { var subtypePairs = []; }
-        // dump ([label,regtype,subtypePairs,"\n"].join(' '));
-        newVisibleData.push([label, true, false, -1]);
-        if(!newRegTypes[regtype])   {
-            newRegTypes[regtype] = {
+        if(!newRegtypes[regtype])   {
+            newRegtypes[regtype] = {
                 label: label,
                 subtypes: {},
             };
         }
         for (var i=0;i<subtypePairs.length;i++)  {
-            // dump(subtypePairs[i]+"\n");
             var subtypePairsA = subtypePairs[i].split(':');
             var subtypeLabel = subtypePairsA[0];
             var subtypeType = subtypePairsA[1];
-            // dump (["subtypeLabel",subtypeLabel,"subtypeType",subtypeType].join('\t')+"\n");
-            newVisibleData.push([subtypeLabel, true, false, -1]);
-            if(!newRegTypes[regtype]["subtypes"][subtypeType])  {
-                newRegTypes[regtype]["subtypes"][subtypeType] = subtypeLabel;
-                // dump("newRegTypes[regtype]['subtypes'][subtypeType]" + newRegTypes[regtype]["subtypes"][subtypeType] + "\n");
+            if(!newRegtypes[regtype]["subtypes"][subtypeType])  {
+                newRegtypes[regtype]["subtypes"][subtypeType] = subtypeLabel;
             }
         }
     }
-    var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
-    for (regType in newRegTypes)   {
-        // dump(regType+"\n");
-        var discoveredServices = dsdManager.getDiscoveredServices(regType,null);
+    this.regtypes = newRegtypes;
+  },
+  addRegtypeObservers: function() {
+    for (regtype in this.regtypes)    {
+        this.observerService.addObserver(this, "dsd_service_rmv:"+regtype, false);
+        this.observerService.addObserver(this, "dsd_service_add:"+regtype, false);
+    }
+  },
+  setRegtypeObservers: function()    {
+    this.removeRegtypeObservers();
+    this.updateRegtypes();
+    this.addRegtypeObservers();
+  },
+  updateServices: function()    {
+    var newChildData={}, newVisibleData=[];
+    for (regtype in this.regtypes)   {
+        var discoveredServices = this.dsdManager.getDiscoveredServices(regtype,null);
         for(var i=0;i<discoveredServices.length;i++)
         {
             var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
@@ -213,7 +233,7 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
             catch (e) { var subtypes = null; }
             if (subtypes)   {
                 if (subtypes.indexOf(',')==-1) {
-                    var category = newRegTypes[regType]["subtypes"][subtypes];
+                    var category = this.regtypes[regtype]["subtypes"][subtypes];
                     if (!newChildData[category])    {
                         newChildData[category] = [];
                     }
@@ -221,7 +241,7 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
                 } else {
                     var subtypesA = subtypes.split(',');
                     for (var j=0;i<subtypesA.length;j++) {
-                        var category = newRegTypes[regType]["subtypes"][subtypesA[j]];
+                        var category = this.regtypes[regtype]["subtypes"][subtypesA[j]];
                         if (!newChildData[category])    {
                             newChildData[category] = [];
                         }
@@ -229,7 +249,7 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
                     }
                 }
             } else {
-                var category = newRegTypes[regType]["label"];
+                var category = this.regtypes[regtype]["label"];
                 if (!newChildData[category])    {
                     newChildData[category] = [];
                 }
@@ -237,14 +257,29 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
             }
         }
     }
-    treeView.childData = newChildData;
+    var visibleDataOpenMap = {};
+    for (i=0;i<treeView.visibleData.length;i++) {
+        this.visibleDataOpenMap[treeView.visibleData[i][0]] = treeView.visibleData[i][2];
+    }
+    for (visibleDataLabel in newChildData) {
+        newVisibleData.push([visibleDataLabel, true, false, -1]);
+    }
+    treeView.childData={};
     treeView.visibleData = newVisibleData;
+    treeView.childData = newChildData;
+    for (var i=0;i<treeView.visibleData.length;i++) {
+        if (this.visibleDataOpenMap[treeView.visibleData[i][0]])    {
+            treeView.toggleOpenState(i);
+        }
+    }
+  }
+};
 
 
 
+window.addEventListener("load", function(e) {treeManager.startup();}, false);
+window.addEventListener("unload", function(e) { treeManager.shutdown(); }, false);
 
-  document.getElementById("serviceList").view = treeView;
-}
 
 ]]></script>
 

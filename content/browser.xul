@@ -81,17 +81,14 @@ var ServiceBrowser = {
                 var newLabelServiceName = document.createElement('label');
                 var newLabelRegistrationSubTypes = document.createElement('label');
                 newLabelDomain.setAttribute('value',rService.queryElementAt(0,Components.interfaces.nsIVariant));
-                newLabelDomain.setAttribute('crop','center');
-                newLabelDomain.setAttribute('flex',1);
+                // newLabelDomain.setAttribute('flex',1);
                 newLabelRegistrationType.setAttribute('value',rService.queryElementAt(1,Components.interfaces.nsIVariant));
-                newLabelRegistrationType.setAttribute('crop','center');
-                newLabelRegistrationType.setAttribute('flex',1);
+                // newLabelRegistrationType.setAttribute('flex',1);
                 newLabelServiceName.setAttribute('value',rService.queryElementAt(2,Components.interfaces.nsIVariant));
-                newLabelServiceName.setAttribute('crop','center');
-                newLabelServiceName.setAttribute('flex',1);
-                newLabelRegistrationSubTypes.setAttribute('value',rService.queryElementAt(4,Components.interfaces.nsIVariant));
-                newLabelRegistrationSubTypes.setAttribute('crop','center');
-                newLabelRegistrationSubTypes.setAttribute('flex',1);
+                // newLabelServiceName.setAttribute('flex',1);
+                // newLabelRegistrationSubTypes.setAttribute('value',rService.queryElementAt(4,Components.interfaces.nsIVariant));
+                // newLabelRegistrationSubTypes.setAttribute('crop','center');
+                // newLabelRegistrationSubTypes.setAttribute('flex',1);
                 newListItem.appendChild(newLabelServiceName);
                 newListItem.appendChild(newLabelRegistrationType);
                 newListItem.appendChild(newLabelDomain);
@@ -124,39 +121,36 @@ var ServiceBrowser = {
     }
 }
 
-function bodgie(count) {
-    ServiceBrowser.renderServices()
-    if (count<3) {
-        setTimeout(function(){bodgie(count++);},300);
-    }
-}    
-document.addEventListener("DOMContentLoaded", function(){bodgie(0);}, false);
+document.addEventListener("DOMContentLoaded", function(){
+    setTimeout(ServiceBrowser.renderServices,0);
+    setTimeout(ServiceBrowser.renderServices,100);
+    setTimeout(ServiceBrowser.renderServices,200);
+    }, false);
+
 
 ]]>
 </script>
 <vbox flex="1" style="padding: 0; margin: 0;">
-    <listbox id="lbServices" rows="5" flex="1" style="padding: 0; margin: 0;" onselect="ServiceBrowser.resolveService(event.explicitOriginalTarget.value);">
+    <listbox id="lbServices" flex="1" style="padding: 0; margin: 0;" onselect="ServiceBrowser.resolveService(event.explicitOriginalTarget.value);">
       <listcols>
-    	<listcol flex="1" />
-    	<splitter class="tree-splitter" />
-    	<listcol flex="1" />
-    	<splitter class="tree-splitter" />
-    	<listcol flex="1" />
+    	<listcol flex="3"/>
+    	<listcol flex="2"/>
+    	<listcol flex="1"/>
     	<!--//
     	<splitter class="tree-splitter" />
     	<listcol flex="1" />
     	//-->
       </listcols>
       <listhead>
-    	<listheader label="Service Name" />
-    	<listheader label="Registration Type" />
-    	<listheader label="Registration Domain" />
+    	<listheader label="Service Name" flex="1"/>
+    	<listheader label="Registration Type" flex="1"/>
+    	<listheader label="Registration Domain" flex="1"/>
     	<!--//
     	<listheader label="Registration Subtypes" />
     	//-->
       </listhead>
     </listbox>
-    <groupbox id="gpServiceInfo" style="display: none;">
+    <vbox id="gpServiceInfo" style="display: none;">
     <hbox align="center">
     <label style="width: 11em;" value="Service Name"/>
     <textbox flex="1" value="Service Name" id="tbServiceName" readonly="true" />
@@ -188,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function(){bodgie(0);}, false);
     <hbox>
     <spacer flex="1" /><description>* Registration Subtypes only discovered when explictly sought</description>
     </hbox>
-    </groupbox>
+    </vbox>
     <hbox>
     <spacer flex="1" />
     <button oncommand="ServiceBrowser.renderServices()" label="Refresh Service List" />
