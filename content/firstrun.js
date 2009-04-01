@@ -77,9 +77,6 @@ VALUES (1, "_wiki", "Wikis");                           \
     ','                                                 \
 INSERT INTO ServiceSubtypes (s_id, subtype, label)      \
 VALUES (1, "_printer", "Printers");                     \
-    ','                                                 \
-INSERT INTO Services (regtype, scheme, label)           \
-VALUES ("_ssh._tcp.", "ssh://${srv:hostname}:${srv:port}/","SSH");  \
     '];
     for (i=0;i<dbQueries.length;i++)    {
         try { DBConn.executeSimpleSQL(dbQueries[i]); }

@@ -220,15 +220,15 @@ VALUES (?1, ?2, ?3);               ");
 <label style="font-weight: bold; font-size: 1.1em;" value="Edit Registration Type"/>
 <hbox align="center">
 <label style="width: 11em;" value="Registration Type"/>
-<textbox flex="1" value="_http._tcp." id="tbRegistrationType" />
+<textbox flex="1" id="tbRegistrationType" />
 </hbox>
 <hbox align="center">
 <label style="width: 11em;" value="Label"/>
-<textbox flex="1" value="Websites" id="tbLabel" />
+<textbox flex="1" id="tbLabel" />
 </hbox>
 <hbox align="center">
 <label style="width: 11em;" value="Scheme"/>
-<textbox flex="1" id="tbScheme" value='http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}' />
+<textbox flex="1" id="tbScheme" />
 </hbox>
 <hbox>
 <label style="width: 11em;" value="Subtypes"/>

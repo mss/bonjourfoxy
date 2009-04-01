@@ -1,27 +1,14 @@
 const nsISupports = Components.interfaces.nsISupports;
 const IDSDMANAGER = Components.interfaces.IDSDMANAGER;
 
-// You can change these if you like
 const CLASS_ID = Components.ID("2a4a57ac-0b06-4fdc-aa3a-f8e4e9195f50");
 const CLASS_NAME = "DSDMANAGER";
 const CONTRACT_ID = "@andrew.tj.id.au/dsdmanager;1";
 
-// This is your constructor.
-// You can do stuff here.
 function DSDMANAGER() {
-  // you can cheat and use this
-  // while testing without
-  // writing your own interface
   this.wrappedJSObject = this;
   this.storageService = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService);
-  /*
-  this.dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
-                    .getService(Components.interfaces.nsIProperties)
-                    .get("ProfD", Components.interfaces.nsIFile);
-  this.dbFile.append("testdb.sqlite");
-  this.DBConn = this.storageService.openDatabase(this.dbFile);
-  */
   this.DBConn = this.storageService.openDatabase(null);
   this.DBConn.executeSimpleSQL('                                            \
 CREATE TABLE DiscoveredDomains (                                            \

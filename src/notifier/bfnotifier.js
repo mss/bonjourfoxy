@@ -25,29 +25,18 @@ BFNotifier.prototype = {
             break;
         
         case "profile-after-change":
-            /*
-            var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService(Components.interfaces.nsIObserverService);
-            observerService.addObserver(this, "dsd_service_add__http._tcp.", false);
-            */
             this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
                 .getService(Components.interfaces.nsIPrefService)
                 .getBranch("extensions.bonjourfoxy.");
             this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
             this.prefs.addObserver("", this, false);
             this.displayAlerts = this.prefs.getBoolPref("alerts");
-            dump (['alerts:',this.displayAlerts,"\n"].join(" "));
             this.dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
             this.alertsService = Components.classes["@mozilla.org/alerts-service;1"].getService(Components.interfaces.nsIAlertsService);
             this.setHandlers();
         break;
         
         case "profile-before-change":
-            /*
-            var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                    .getService(Components.interfaces.nsIObserverService);
-            observerService.removeObserver(this, "dsd_service_add__http._tcp.", false);
-            */
             this.removeHandlerObservers();
             this.prefs.removeObserver("", this);
             this.dsdManager = null;
@@ -63,13 +52,10 @@ BFNotifier.prototype = {
                 case "alerts":
                     this.displayAlerts = this.prefs.getBoolPref("alerts");
                 break;
-                default:
-                    dump (['nsPref','changed',data,"\n"].join(' '));
             }
         break;
         
         default:
-             dump(aTopic + "\n");
              if (aTopic.match(/^dsd_service_add/))   {
                  var newType = aTopic.split(":")[1];
                  if (this.handlers[newType])
@@ -125,11 +111,8 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
             try { var subRegtypes = sqlGetRegTypes.getUTF8String(2).split(','); }
             catch (e) { var subRegtypes = []; }
             newHandlers[regType] = label;
-            // this.dsdManager.discoverServices(regType,null);
             regtypeSearches.push(regType);
             for (var i=0;i<subRegtypes.length;i++)  {
-                // this.dsdManager.discoverServices([regType,subRegtypes[i]].join(','),null);    
-                // dump([regType,subRegtypes[i]].join(',') + "\n");
                 regtypeSearches.push([regType,subRegtypes[i]].join(','));
             }
         }
