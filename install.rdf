@@ -9,7 +9,7 @@
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:updateURL="http://andrew.tj.id.au/files/bonjourfoxy.rdf"
                    em:id="bonjourfoxy@andrew.tj.id.au"
-                   em:version="0.3.5.2"
+                   em:version="0.3.5.3"
                    em:optionsURL="chrome://bonjourfoxy/content/options.xul"
                    em:name="BonjourFoxy"
                    em:description="Bonjour for Firefox"

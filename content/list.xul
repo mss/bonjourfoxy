@@ -1,19 +1,17 @@
 <?xml version="1.0"?>
-
 <?xml-stylesheet href="chrome://browser/content/places/places.css"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/places/places.css"?>
+<?xml-stylesheet href="list.css"?>
 
-<page id="sbBonjourServices" title="Bonjour Services"
-        xmlns:html="http://www.w3.org/1999/xhtml"
+<page   onload="init();"
+        orient="vertical"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        onload='updateServiceList()'
-        class="dialog">
+        style="background-color: transparent !important; -moz-appearance: none !important;">
 
-  <script type="application/x-javascript" 
-          src="chrome://bonjourfoxy/content/list.js" />
-  <script type="application/x-javascript" 
-          src="chrome://bonjourfoxy/content/shared.js" />
+<script type="application/x-javascript" 
+        src="chrome://bonjourfoxy/content/shared.js" />
+
 
 <menupopup id="targetmenu" oncommand="listEventHandler(event);">
     <menuitem label="Open" value="current"/>
@@ -21,7 +19,233 @@
     <menuitem label="Open in New Window" value="window"/>
 </menupopup>
 
-<richlistbox id="serviceList" flex="1" context="targetmenu" style="background-color: HighlightText; padding:0;margin:0;">
-</richlistbox>
+<tree id="serviceList" flex="1" class="sidebar-placesTree" hidecolumnpicker="true">
+
+  <treecols hide="true">
+    <treecol id="title" flex="1" primary="true" hideheader="true"/>
+  </treecols>
+
+  <treechildren id="serviceListChildren" context="targetmenu" class="sidebar-placesTreechildren" />
+</tree>
+
+<script>
+<![CDATA[
+
+
+document.getElementById("serviceListChildren").addEventListener("click", listEventHandler, false);
+
+function listEventHandler(event)    {
+    if (event.type=='click' && event.button == 2)   { return; } // context menu click
+    var selected = document.getElementById('serviceList').currentIndex;
+    if (selected==-1)   { return; }
+    var serviceID = treeView.visibleData[selected][3];
+    if (serviceID==-1)  { return; }
+    var linkTarget="default";
+    if (event.type=='command')  {
+        // dump([event.type,event.target.value,document.popupNode.parentNode.value,''].join("\n"));
+        // serviceId=document.popupNode.parentNode.value;
+        linkTarget=event.target.value;
+    } else {
+        if (event.shiftKey) {
+            linkTarget="window";
+        }
+        if (event.button=="1") {
+            linkTarget="tab";
+        }
+    }
+    openLink(linkTarget,serviceID);
+}
+
+
+var treeView = {
+  regTypes : {},
+  childData : {
+    "Web Sites": [["service1",1],["service2",2],["service3",3]],
+    "Wikis": [["service1",4],["service2",5],["service3",6]],
+  },
+
+  visibleData : [
+    ["Web Sites", true, false, -1],
+    ["Wikis", true, false, -1],
+  ],
+
+  treeBox: null,
+  selection: null,
+
+  get rowCount()                     { return this.visibleData.length; },
+  setTree: function(treeBox)         { this.treeBox = treeBox; },
+  getCellText: function(idx, column) { return this.visibleData[idx][0]; },
+  isContainer: function(idx)         { return this.visibleData[idx][1]; },
+  isContainerOpen: function(idx)     { return this.visibleData[idx][2]; },
+  isContainerEmpty: function(idx)    { return false; },
+  isSeparator: function(idx)         { return false; },
+  isSorted: function()               { return false; },
+  isEditable: function(idx, column)  { return false; },
+
+  getParentIndex: function(idx) {
+    if (this.isContainer(idx)) return -1;
+    for (var t = idx - 1; t >= 0 ; t--) {
+      if (this.isContainer(t)) return t;
+    }
+  },
+  getLevel: function(idx) {
+    if (this.isContainer(idx)) return 0;
+    return 1;
+  },
+  hasNextSibling: function(idx, after) {
+    var thisLevel = this.getLevel(idx);
+    for (var t = after + 1; t < this.visibleData.length; t++) {
+      var nextLevel = this.getLevel(t);
+      if (nextLevel == thisLevel) return true;
+      if (nextLevel < thisLevel) break;
+    }
+    return false;
+  },
+  toggleOpenState: function(idx) {
+    var item = this.visibleData[idx];
+    if (!item[1]) return;
+
+    if (item[2]) {
+      item[2] = false;
+
+      var thisLevel = this.getLevel(idx);
+      var deletecount = 0;
+      for (var t = idx + 1; t < this.visibleData.length; t++) {
+        if (this.getLevel(t) > thisLevel) deletecount++;
+        else break;
+      }
+      if (deletecount) {
+        this.visibleData.splice(idx + 1, deletecount);
+        this.treeBox.rowCountChanged(idx + 1, -deletecount);
+      }
+    }
+    else {
+      item[2] = true;
+
+      var label = this.visibleData[idx][0];
+      // dump("label: "+label+"\n");
+      var toinsert = this.childData[label];
+      // dump("toinsert: "+toinsert+"\n");
+      if (toinsert) {
+          for (var i = 0; i < toinsert.length; i++) {
+            this.visibleData.splice(idx + i + 1, 0, [toinsert[i][0], false, false, toinsert[i][1]]);
+            // dump(idx + i + 1 + "\n");
+          }
+          this.treeBox.rowCountChanged(idx + 1, toinsert.length);
+      }
+    }
+    this.treeBox.invalidateRow(idx);
+  },
+
+  getImageSrc: function(idx, column) {},
+  getProgressMode : function(idx,column) {},
+  getCellValue: function(idx, column) {
+    // dump("getCellValue ("+idx+","+column+")\n");
+    },
+  cycleHeader: function(col, elem) {},
+  selectionChanged: function() {},
+  cycleCell: function(idx, column) {},
+  performAction: function(action) {},
+  performActionOnCell: function(action, index, column) {},
+  getRowProperties: function(idx, column, prop) {},
+  getCellProperties: function(idx, column, prop) {},
+  getColumnProperties: function(column, element, prop) {},
+};
+
+function init() {
+    var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                    .getService(Components.interfaces.mozIStorageService);        
+    var dbFile = Components.classes["@mozilla.org/file/directory_service;1"]
+                    .getService(Components.interfaces.nsIProperties)
+                    .get("ProfD", Components.interfaces.nsIFile);
+    dbFile.append("bonjourfoxy.sqlite");
+    var DBConn = storageService.openDatabase(dbFile);
+    var sqlServices = DBConn.createStatement("                          \
+SELECT                                                                  \
+    Services.label as label,                                            \
+    Services.regtype as regtype,                                        \
+    GROUP_CONCAT(                                                       \
+        DISTINCT ServiceSubtypes.label||':'||ServiceSubtypes.subtype    \
+    ) as subtypes                                                       \
+FROM Services                                                           \
+LEFT OUTER JOIN ServiceSubtypes ON Services.id = ServiceSubtypes.s_id   \
+GROUP BY Services.regtype, Services.scheme, Services.label;             ");
+    var newVisibleData = [];
+    var newRegTypes = {};
+    var newChildData = {};
+    while(sqlServices.executeStep()) {
+        var label = sqlServices.getUTF8String(0);
+        var regtype = sqlServices.getUTF8String(1);
+        try { var subtypePairs = sqlServices.getUTF8String(2).split(","); }
+        catch (e) { var subtypePairs = []; }
+        // dump ([label,regtype,subtypePairs,"\n"].join(' '));
+        newVisibleData.push([label, true, false, -1]);
+        if(!newRegTypes[regtype])   {
+            newRegTypes[regtype] = {
+                label: label,
+                subtypes: {},
+            };
+        }
+        for (var i=0;i<subtypePairs.length;i++)  {
+            // dump(subtypePairs[i]+"\n");
+            var subtypePairsA = subtypePairs[i].split(':');
+            var subtypeLabel = subtypePairsA[0];
+            var subtypeType = subtypePairsA[1];
+            // dump (["subtypeLabel",subtypeLabel,"subtypeType",subtypeType].join('\t')+"\n");
+            newVisibleData.push([subtypeLabel, true, false, -1]);
+            if(!newRegTypes[regtype]["subtypes"][subtypeType])  {
+                newRegTypes[regtype]["subtypes"][subtypeType] = subtypeLabel;
+                // dump("newRegTypes[regtype]['subtypes'][subtypeType]" + newRegTypes[regtype]["subtypes"][subtypeType] + "\n");
+            }
+        }
+    }
+    var dsdManager=Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
+    for (regType in newRegTypes)   {
+        // dump(regType+"\n");
+        var discoveredServices = dsdManager.getDiscoveredServices(regType,null);
+        for(var i=0;i<discoveredServices.length;i++)
+        {
+            var discoveredService = discoveredServices.queryElementAt(i,Components.interfaces.nsIArray);
+            var serviceName = discoveredService.queryElementAt(2,Components.interfaces.nsIVariant);
+            var serviceID = discoveredService.queryElementAt(3,Components.interfaces.nsIVariant);
+            try { var subtypes = discoveredService.queryElementAt(4,Components.interfaces.nsIVariant); }
+            catch (e) { var subtypes = null; }
+            if (subtypes)   {
+                if (subtypes.indexOf(',')==-1) {
+                    var category = newRegTypes[regType]["subtypes"][subtypes];
+                    if (!newChildData[category])    {
+                        newChildData[category] = [];
+                    }
+                    newChildData[category].push([serviceName,serviceID]);
+                } else {
+                    var subtypesA = subtypes.split(',');
+                    for (var j=0;i<subtypesA.length;j++) {
+                        var category = newRegTypes[regType]["subtypes"][subtypesA[j]];
+                        if (!newChildData[category])    {
+                            newChildData[category] = [];
+                        }
+                        newChildData[category].push([serviceName,serviceID]);
+                    }
+                }
+            } else {
+                var category = newRegTypes[regType]["label"];
+                if (!newChildData[category])    {
+                    newChildData[category] = [];
+                }
+                newChildData[category].push([serviceName,serviceID]);
+            }
+        }
+    }
+    treeView.childData = newChildData;
+    treeView.visibleData = newVisibleData;
+
+
+
+
+  document.getElementById("serviceList").view = treeView;
+}
+
+]]></script>
 
 </page>

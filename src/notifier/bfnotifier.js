@@ -109,14 +109,34 @@ BFNotifier.prototype = {
                         .get("ProfD", Components.interfaces.nsIFile);
         dbFile.append("bonjourfoxy.sqlite");
         var DBConn = storageService.openDatabase(dbFile);
-        var sqlGetRegTypes = DBConn.createStatement("SELECT regtype, label FROM Services");
+        var sqlGetRegTypes = DBConn.createStatement("                   \
+SELECT                                                                  \
+    Services.regtype as regtype,                                        \
+    Services.label as label,                                            \
+    GROUP_CONCAT(DISTINCT ServiceSubtypes.subtype) as subtypes          \
+FROM Services                                                           \
+LEFT OUTER JOIN ServiceSubtypes ON Services.id = ServiceSubtypes.s_id   \
+GROUP BY Services.regtype, Services.scheme, Services.label;             ");
         var newHandlers = {};
+        var regtypeSearches = [];
         while(sqlGetRegTypes.executeStep()) {
             var regType = sqlGetRegTypes.getUTF8String(0);
-            var label = sqlGetRegTypes.getUTF8String(0);
+            var label = sqlGetRegTypes.getUTF8String(1);
+            try { var subRegtypes = sqlGetRegTypes.getUTF8String(2).split(','); }
+            catch (e) { var subRegtypes = []; }
             newHandlers[regType] = label;
+            // this.dsdManager.discoverServices(regType,null);
+            regtypeSearches.push(regType);
+            for (var i=0;i<subRegtypes.length;i++)  {
+                // this.dsdManager.discoverServices([regType,subRegtypes[i]].join(','),null);    
+                // dump([regType,subRegtypes[i]].join(',') + "\n");
+                regtypeSearches.push([regType,subRegtypes[i]].join(','));
+            }
+        }
+        while(regType=regtypeSearches.pop())    {
             this.dsdManager.discoverServices(regType,null);
         }
+        
         this.handlers = newHandlers;
         this.addHandlerObservers();
     }
