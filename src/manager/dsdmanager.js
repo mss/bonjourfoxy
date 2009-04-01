@@ -72,8 +72,7 @@ END;                                                                        ');
 // This is the implementation of your component.
 DSDMANAGER.prototype = {
   log: function(message)   {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                    .getService(Components.interfaces.nsIPrefService);
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
     prefs = prefs.getBranch("extensions.dsd.");
     if (prefs.getBoolPref("logToErrorConsole"))  {
         var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
@@ -83,12 +82,12 @@ DSDMANAGER.prototype = {
   validServiceName: function(input) {
     var escapedStr = encodeURI(input)
     if (escapedStr.indexOf("%") != -1) {
-        var count = escapedStr.split("%").length - 1
-        if (count == 0) count++
-        var tmp = escapedStr.length - (count * 3)
-        count = count + tmp
+        var count = escapedStr.split("%").length - 1;
+        if (count == 0) count++;
+        var tmp = escapedStr.length - (count * 3);
+        count = count + tmp;
     } else {
-        count = escapedStr.length
+        count = escapedStr.length;
     }
     if (count>63)   {
         return false;
@@ -183,7 +182,6 @@ DSDMANAGER.prototype = {
         sqlCountDiscoveredDomains = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredDomains WHERE domaintype=?1 GROUP BY regdomain, domaintype");
         sqlCountDiscoveredDomains.bindUTF8StringParameter(0, domainType);
     }
-    /* there's gotta be a better way... */
     while (sqlCountDiscoveredDomains.executeStep())
     {
         count++;
@@ -267,13 +265,39 @@ GROUP BY                                                        \
   {
     var invocationTxt = "getDiscoveredServicesCount(" + Array.prototype.slice.call(arguments).join(",") + ")";
     this.log(invocationTxt);
+    var sqlSubTypes = regType.indexOf(',')!=-1;
+    var sqlSubTypesQuery = "";
+    var subTypesArray = [];
+    if (sqlSubTypes)
+    {
+        var subTypesArray = regType.split(',');
+        regType = subTypesArray[0];
+        for (i=1;i<subTypesArray.length;i++)
+        {
+            this.log([i+2,subTypesArray[i]].join(' '));
+            sqlSubTypesQuery += " AND DiscoveredServicesSubtypes.subtype = ?" + (i+2);
+        }
+    }
     var count=0;
-    var sqlCountDiscoveredServices = null;
-    if (regDomain==null)    {
-        sqlCountDiscoveredServices = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredServices WHERE regtype = ?1 GROUP BY regdomain, regtype, servicename");
-    } else {
-        sqlCountDiscoveredServices = this.DBConn.createStatement("SELECT COUNT(1) FROM DiscoveredServices WHERE regtype = ?1 AND regdomain = ?2 GROUP BY regdomain, regtype, servicename");
-        sqlCountDiscoveredServices.bindUTF8StringParameter(1, regDomain);
+    var sqlCountDiscoveredServices = this.DBConn.createStatement("\
+SELECT COUNT(1)                                                 \
+FROM DiscoveredServices                                         \
+LEFT OUTER JOIN DiscoveredServicesSubTypes                      \
+ON DiscoveredServices.id = DiscoveredServicesSubtypes.ds_id     \
+WHERE DiscoveredServices.regtype = ?1                           \
+"   + ( (regDomain==null) ? "" : " AND regdomain = ?2" ) + "    \
+"   + ( (sqlSubTypes) ? sqlSubTypesQuery  : '' ) + "            \
+GROUP BY                                                        \
+    DiscoveredServices.regdomain,                               \
+    DiscoveredServices.regtype,                                 \
+    DiscoveredServices.servicename                             ");
+    if (sqlSubTypes)
+    {
+        for (i=1;i<subTypesArray.length;i++)
+        {
+            this.log([i,i+1,subTypesArray[i]].join(''));
+            sqlCountDiscoveredServices.bindUTF8StringParameter(i+1, subTypesArray[i]);
+        }
     }
     sqlCountDiscoveredServices.bindUTF8StringParameter(0, regType);
     while (sqlCountDiscoveredServices.executeStep()) {
