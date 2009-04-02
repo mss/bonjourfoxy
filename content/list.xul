@@ -13,9 +13,9 @@
 
 
 <menupopup id="targetmenu" oncommand="listEventHandler(event);">
-    <menuitem label="&bonjourfoxySidebar.openDefault;" value="current"/>
-    <menuitem label="&bonjourfoxySidebar.openTab;" value="tab"/>
-    <menuitem label="&bonjourfoxySidebar.openWindow;" value="window"/>
+    <menuitem label="&bonjourfoxySidebarOpenDefault.label;" value="current"/>
+    <menuitem label="&bonjourfoxySidebarOpenTab.label;" value="tab"/>
+    <menuitem label="&bonjourfoxySidebarOpenWindow.label;" value="window"/>
 </menupopup>
 
 <tree id="serviceList" flex="1" class="sidebar-placesTree" hidecolumnpicker="true">
@@ -30,6 +30,7 @@
 <script>
 <![CDATA[
 
+var startup=true;
 
 document.getElementById("serviceListChildren").addEventListener("click", listEventHandler, false);
 
@@ -64,12 +65,13 @@ var treeView = {
   childData : {},
   visibleData : [],
   selection: null,
+  treeBox: null,
   get rowCount()                     { return this.visibleData.length; },
   setTree: function(treeBox)         { this.treeBox = treeBox; },
   getCellText: function(idx, column) { return this.visibleData[idx][0]; },
   isContainer: function(idx)         { return this.visibleData[idx][1]; },
   isContainerOpen: function(idx)     { return this.visibleData[idx][2]; },
-  isContainerEmpty: function(idx)    { return false; },
+  isContainerEmpty: function(idx)    { return this.childData[this.visibleData[idx][0]].length==0; },
   isSeparator: function(idx)         { return false; },
   isSorted: function()               { return false; },
   isEditable: function(idx, column)  { return false; },
@@ -154,6 +156,13 @@ var treeManager = {
   shutdown: function() {
     this.removeRegtypeObservers();
     this.prefs.removeObserver("", this);
+    var openContainers=[];
+    for (i=0;i<treeView.visibleData.length;i++) {
+        if (treeView.visibleData[i][1] && treeView.visibleData[i][2])   {
+            openContainers.push(treeView.visibleData[i][0]);
+        }
+    }
+    this.prefs.setCharPref("sidebarOpen",openContainers.join(","));    
   },
   removeRegtypeObservers: function()    {
     for (regtype in this.regtypes)    {
@@ -224,7 +233,14 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
     this.addRegtypeObservers();
   },
   updateServices: function()    {
-    var newChildData={}, newVisibleData=[];
+    var newChildData={}, newVisibleData=[], openContainers=[];
+    
+    for (i=0;i<treeView.visibleData.length;i++) {
+        if (treeView.visibleData[i][1] && treeView.visibleData[i][2])   {
+            openContainers.push(treeView.visibleData[i][0]);
+        }
+    }
+    
     for (regtype in this.regtypes)   {
         var discoveredServices = this.dsdManager.getDiscoveredServices(regtype,null);
         for(var i=0;i<discoveredServices.length;i++)
@@ -260,21 +276,37 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
             }
         }
     }
-    var visibleDataOpenMap = {};
-    for (i=0;i<treeView.visibleData.length;i++) {
-        this.visibleDataOpenMap[treeView.visibleData[i][0]] = treeView.visibleData[i][2];
+    
+    for (container in newChildData) {
+        newVisibleData.push([container, true, false, -1]);
     }
-    for (visibleDataLabel in newChildData) {
-        newVisibleData.push([visibleDataLabel, true, false, -1]);
+
+    treeView.childData=newChildData;
+    treeView.visibleData=newVisibleData;
+
+    var tree = document.getElementById('serviceList');
+    var boxobject = tree.boxObject;
+    boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+    boxobject.invalidate();
+    
+    if (startup)    {
+        openContainers=this.prefs.getCharPref("sidebarOpen").split(",");
+        startup=false;
+    } else {        
+        this.prefs.setCharPref("sidebarOpen",openContainers.join(","));
     }
-    treeView.childData={};
-    treeView.visibleData = newVisibleData;
-    treeView.childData = newChildData;
-    for (var i=0;i<treeView.visibleData.length;i++) {
-        if (this.visibleDataOpenMap[treeView.visibleData[i][0]])    {
-            treeView.toggleOpenState(i);
+    
+    setTimeout(function(){
+        while(opencontainer=openContainers.pop())   {
+            for(i=0;i<treeView.visibleData.length;i++)  {
+                if (treeView.visibleData[i][1]) {
+                    if (opencontainer==treeView.visibleData[i][0])  {
+                        treeView.toggleOpenState(i);
+                    }
+                }
+            }
         }
-    }
+    },0);    
   }
 };
 
