@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
- 
-<prefwindow id="BrowserPreferences"
-     title="BonjourFoxy Options"
+<!DOCTYPE prefwindow SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd"> 
+<prefwindow id="bonjourfoxyPreferences"
+     title="(Overriden)"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
      xmlns:html="http://www.w3.org/1999/xhtml"
      buttons="accept"
@@ -58,32 +58,43 @@ function serviceHandler(event)  {
     lbServices.builder.rebuild();
 }
 
+function localise() {
+    var strings = document.getElementById("string-bundle");
+    var title = strings.getString('title') + " ";
+    if (/Win/.test(navigator.platform)) {
+        title += strings.getString('winPrefLabel');
+    } else {
+        title += strings.getString('unixPrefLabel');
+    }
+    document.getElementById('bonjourfoxy-prefpane').setAttribute('label',title);
+    document.getElementById('bonjourfoxyPreferences').setAttribute('title',title);
+    document.title = title;
+}
+
+window.addEventListener("load", localise, false);
+
 ]]>
 </script>
-<prefpane id="bonjourfoxy-prefpane" label="BonjourFoxy Preferences">
+<stringbundleset id="stringbundleset">
+  <stringbundle id="string-bundle" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
+</stringbundleset>
+<prefpane id="bonjourfoxy-prefpane" label="(Overridden)">
   <preferences>
     <preference id="pref_alerts" name="extensions.bonjourfoxy.alerts" instantApply="true" type="bool"/>
     <preference id="pref_statusbaricon" name="extensions.bonjourfoxy.statusbaricon" instantApply="true" type="bool"/>
     <preference id="pref_target" name="extensions.bonjourfoxy.target" instantApply="true" type="string"/>
   </preferences>
 <groupbox>
- <caption style="font-weight: bold; font-size: 1.1em;" value="Service Handlers" />
+ <caption style="font-weight: bold; font-size: 1.1em;" value="&bonjourfoxyServiceHandlers.label;" />
  <listbox id="lbServices" datasources="profile:bonjourfoxy.sqlite" ref="*" querytype="storage" flex="1">
     <listcols>
-	<listcol flex="1" />
-	<splitter class="tree-splitter" />
-	<listcol flex="1" />
-	<!--//
-	<splitter class="tree-splitter" />
-	<listcol flex="1" />
-	//-->
+    	<listcol flex="1" />
+    	<splitter class="tree-splitter"/>
+    	<listcol flex="1" />
     </listcols>
     <listhead>
-	<listheader label="Label" />
-	<listheader label="Registration Type" />
-	<!--//
-	<listheader label="Subtypes" />
-	//-->
+    	<listheader label="&bonjourfoxyServiceHandler.label;" flex="1" />
+    	<listheader label="&bonjourfoxyRegistrationType;" flex="1"/>
     </listhead>
   <template>
     <query>
@@ -100,12 +111,9 @@ LEFT OUTER JOIN ServiceSubtypes ON Services.id = ServiceSubtypes.s_id
 GROUP BY Services.regtype, Services.scheme, Services.label;
     </query>
     <action>
-      <listitem uri="?id" value="?id">
-        <label value="?label"/>
-        <label value="?regtype"/>
-        <!--//
-        <label value="?subtypes"/>
-        //-->
+      <listitem uri="?id" value="?id" flex="1">
+        <label value="?label" flex="1"/>
+        <label value="?regtype" flex="1"/>
       </listitem>
     </action>
   </template>
@@ -113,36 +121,36 @@ GROUP BY Services.regtype, Services.scheme, Services.label;
  </listbox>
  <hbox>
  <spacer flex="1" />
- <button label="New" oncommand="serviceHandler(event)" id="new" />
- <button label="Edit" oncommand="serviceHandler(event)" id="edit" />   
- <button label="Delete" oncommand="serviceHandler(event)" id="delete" />
+ <button label="&bonjourfoxyNew;" oncommand="serviceHandler(event)" id="new" />
+ <button label="&bonjourfoxyEdit;" oncommand="serviceHandler(event)" id="edit" />   
+ <button label="&bonjourfoxyDelete;" oncommand="serviceHandler(event)" id="delete" />
  </hbox>
 </groupbox>
 <groupbox>
- <caption style="font-weight: bold; font-size: 1.1em;" value="Interface Settings"/>
+ <caption style="font-weight: bold; font-size: 1.1em;" value="&bonjourfoxyInterfaceSettings.label;"/>
  <vbox flex="1">
   <hbox>
-      <label control="alerts" value="Discovery notifications:"/>
+      <label control="alerts" value="&bonjourfoxyAlerts.label;"/>
       <spacer flex="1"/>
       <checkbox preference="pref_alerts" id="alerts"/>
   </hbox>
   <hbox>
-      <label control="statusbaricon" value="Status bar icon:"/>
+      <label control="statusbaricon" value="&bonjourfoxyStatusBarIcon.label;"/>
       <spacer flex="1"/>
       <checkbox preference="pref_statusbaricon" id="statusbaricon"/>
   </hbox>
   <hbox flex="1">
-      <label control="target" value="Open links in:"/>
+      <label control="target" value="&bonjourfoxyLinkTarget.label;"/>
       <spacer flex="1"/>
       <menulist preference="pref_target" id="target">
         <menupopup>
-            <menuitem label="Current Page" value="current"/>
-            <menuitem label="New Tab" value="tab"/>
-            <menuitem label="New Window" value="window" />
+            <menuitem label="&bonjourfoxyLinkTarget.CurrentPage;" value="current"/>
+            <menuitem label="&bonjourfoxyLinkTarget.NewTab;" value="tab"/>
+            <menuitem label="&bonjourfoxyLinkTarget.NewWindow;" value="window" />
         </menupopup>
       </menulist>
   </hbox>
-  <hbox><spacer flex="1"/><description>Settings apply instantly</description><spacer flex="1" /></hbox>
+  <hbox><spacer flex="1"/><description value="&bonjourfoxySettingsNote;"/><spacer flex="1" /></hbox>
  </vbox>
 </groupbox>
 </prefpane>

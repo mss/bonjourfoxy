@@ -7,23 +7,23 @@
   <script src="shared.js"/>
   <script src="firstrun.js"/>
   <stringbundleset id="stringbundleset">
-    <stringbundle id="bonjourfoxy-strings" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
+    <stringbundle id="string-bundle" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
   </stringbundleset>
 
   <menubar id="main-menubar">
-    <menu label="BonjourFoxy" insertbefore="tools-menu" onpopupshowing="bonjourfoxy.menuAddServices();">
+    <menu label="&bonjourfoxyMenu.label;" insertbefore="tools-menu" onpopupshowing="bonjourfoxy.menuAddServices();">
     <menupopup id="bonjourMenuPopup">
         <menuitem id="key_openEmptySidebar" label="&bonjourfoxyMenuSidebar.label;" observes="viewBonjourServices"
               oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
         <menuitem label="&bonjourfoxyMenuBrowser.label;" oncommand="window.open('chrome://bonjourfoxy/content/browser.xul','bonjourfoxyBrowser','chrome,resizable=yes,width=600,height=600');" />
-        <menuitem label="&bonjourfoxyMenuPref.label;" oncommand="bonjourfoxy.openPreferences(event);"/>
+        <menuitem label="(overridden)" id="bonjourfoxyMenuPref" oncommand="bonjourfoxy.openPreferences(event);"/>
         <menuseparator/>
     </menupopup>
     </menu>
   </menubar>
 
   <menupopup id="viewSidebarMenu">
-    <menuitem id="key_openEmptySidebar" label="&bonjourfoxy.label;" observes="viewBonjourServices"
+    <menuitem id="key_openEmptySidebar" label="&bonjourfoxySidebarMenuItem.label;" observes="viewBonjourServices"
               oncommand="bonjourfoxy.onMenuItemCommand(event);"/>
   </menupopup>
   

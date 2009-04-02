@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-
-<dialog id="editRegtype" title="Edit Registration Type" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" buttons="accept,cancel" ondialogaccept="onAccept()">
+<!DOCTYPE dialog SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd">
+<dialog id="editRegtype" title="&bonjourfoxyEditRegtype;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" buttons="accept,cancel" ondialogaccept="onAccept()">
 <script>
 <![CDATA[
 
@@ -217,21 +217,21 @@ VALUES (?1, ?2, ?3);               ");
 
 ]]>
 </script>
-<label style="font-weight: bold; font-size: 1.1em;" value="Edit Registration Type"/>
+<label style="font-weight: bold; font-size: 1.1em;" value="&bonjourfoxyEditRegtype;"/>
 <hbox align="center">
-<label style="width: 11em;" value="Registration Type"/>
+<label style="width: 11em;" value="&bonjourfoxyRegistrationType;"/>
 <textbox flex="1" id="tbRegistrationType" />
 </hbox>
 <hbox align="center">
-<label style="width: 11em;" value="Label"/>
+<label style="width: 11em;" value="&bonjourfoxyServiceHandlerLabel.label;"/>
 <textbox flex="1" id="tbLabel" />
 </hbox>
 <hbox align="center">
-<label style="width: 11em;" value="Scheme"/>
+<label style="width: 11em;" value="&bonjourfoxyServiceScheme;"/>
 <textbox flex="1" id="tbScheme" />
 </hbox>
 <hbox>
-<label style="width: 11em;" value="Subtypes"/>
+<label style="width: 11em;" value="&bonjourfoxyRegistrationSubtypes;"/>
 <groupbox class="inset">
 <listbox id="lbSubtypes" flex="1" rows="4">
     <listcols>
@@ -240,15 +240,15 @@ VALUES (?1, ?2, ?3);               ");
 	<listcol flex="1" />
     </listcols>
     <listhead>
-	<listheader label="Label" />
-	<listheader label="Subtype" />
+	<listheader label="&bonjourfoxyServiceHandlerLabel.label;" />
+	<listheader label="&bonjourfoxyRegistrationSubtype;" />
     </listhead>
 </listbox>
  <hbox>
  <spacer flex="1" />
- <button label="New" oncommand="subtypesCommandHandler(event)" id="new" />
- <button label="Edit" oncommand="subtypesCommandHandler(event)" id="edit" />   
- <button label="Delete" oncommand="subtypesCommandHandler(event)" id="delete" />
+ <button label="&bonjourfoxyNew;" oncommand="subtypesCommandHandler(event)" id="new" />
+ <button label="&bonjourfoxyEdit;" oncommand="subtypesCommandHandler(event)" id="edit" />   
+ <button label="&bonjourfoxyDelete;" oncommand="subtypesCommandHandler(event)" id="delete" />
  </hbox>
 </groupbox>
 </hbox>

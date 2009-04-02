@@ -1,6 +1,6 @@
 var bonjourfoxy = {
   startup: function() {
-    this.strings = document.getElementById("bonjourfoxy-strings");
+    this.strings = document.getElementById("string-bundle");
     this.IDSDMANAGER = Components.classes["@andrew.tj.id.au/dsdmanager;1"].getService(Components.interfaces.IDSDMANAGER);
     this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
             .getService(Components.interfaces.nsIPrefService)
@@ -12,6 +12,11 @@ var bonjourfoxy = {
     this.setRegtypeObservers();
     this.displayStatusBarIcon();
     this.setStatusBarIcon();
+    if (/Win/.test(navigator.platform)) {
+        document.getElementById('bonjourfoxyMenuPref').setAttribute('label',this.strings.getString('winPrefLabel'));
+    } else {
+        document.getElementById('bonjourfoxyMenuPref').setAttribute('label',this.strings.getString('unixPrefLabel'));
+    }
   },
   shutdown: function() {
     this.removeRegtypeObservers();

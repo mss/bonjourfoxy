@@ -1,7 +1,38 @@
 <!ENTITY bonjourfoxy.title "BonjourFoxy">
 <!ENTITY bonjourfoxy.label "BonjourFoxy">
-<!ENTITY bonjourfoxyMenuSidebar.label "Sidebar">
-<!ENTITY bonjourfoxyMenuPref.label "Options">
-<!ENTITY bonjourfoxyMenuBrowser.label "Browser">
 <!ENTITY bonjourfoxyToolbar.label "BonjourFoxy">
 <!ENTITY bonjourfoxyToolbar.tooltip "Toggle BonjourFoxy Sidebar">
+<!ENTITY bonjourfoxyMenu.label "BonjourFoxy">
+<!ENTITY bonjourfoxyMenuSidebar.label "Sidebar">
+<!ENTITY bonjourfoxyMenuBrowser.label "Browser">
+<!ENTITY bonjourfoxySidebarMenuItem.label "BonjourFoxy">
+<!ENTITY bonjourfoxySidebarOpenDefault.label "Open">
+<!ENTITY bonjourfoxySidebarOpenTab.label "Open in New Tab">
+<!ENTITY bonjourfoxySidebarOpenWindow.label "Open in New Window">
+<!ENTITY bonjourfoxyServiceName "Service Name">
+<!ENTITY bonjourfoxyRegistrationType "Registration Type">
+<!ENTITY bonjourfoxyRegistrationSubtype "Registration Subtype">
+<!ENTITY bonjourfoxyRegistrationSubtypes "Registration Subtypes">
+<!ENTITY bonjourfoxyRegistrationDomain "Registration Domain">
+<!ENTITY bonjourfoxyServiceHost "Host">
+<!ENTITY bonjourfoxyServicePort "Port">
+<!ENTITY bonjourfoxyTXTRecord "TXT Record">
+<!ENTITY bonjourfoxyTXTRecords "TXT Records">
+<!ENTITY bonjourfoxyRegistrationSubtypesNote "Registration Subtypes only discovered when explictly sought">
+<!ENTITY bonjourfoxyServicesBrowserRefreshButton.label "Refresh Service List">
+<!ENTITY bonjourfoxyServiceHandler.label "Service Handler">
+<!ENTITY bonjourfoxyServiceHandlers.label "Service Handlers">
+<!ENTITY bonjourfoxyServiceHandlerLabel.label "Label">
+<!ENTITY bonjourfoxyInterfaceSettings.label "Interface Settings">
+<!ENTITY bonjourfoxyAlerts.label "Discovery notifications">
+<!ENTITY bonjourfoxyStatusBarIcon.label "Status bar icon">
+<!ENTITY bonjourfoxyLinkTarget.CurrentPage "Current Page">
+<!ENTITY bonjourfoxyLinkTarget.NewTab "New Tab">
+<!ENTITY bonjourfoxyLinkTarget.NewWindow "New Window">
+<!ENTITY bonjourfoxyLinkTarget.label "Open links in:">
+<!ENTITY bonjourfoxySettingsNote "Settings apply immediately">
+<!ENTITY bonjourfoxyNew "New">
+<!ENTITY bonjourfoxyEdit "Edit">
+<!ENTITY bonjourfoxyDelete "Delete">
+<!ENTITY bonjourfoxyEditRegtype "Edit Registration Type">
+<!ENTITY bonjourfoxyServiceScheme "Scheme">
