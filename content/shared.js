@@ -22,7 +22,6 @@ function checkResolver(context) {
             var txtValue = txtRecord.queryElementAt(1,Components.interfaces.nsIVariant);
             txtRecords[txtKey]=txtValue;
         }
-        // var scheme = 'http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}';
         var scheme = "";
         var storageService = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService);        
@@ -72,7 +71,6 @@ function checkResolver(context) {
             scheme=scheme.replace(strSearch,strReplace);
         }
         var finalurl=scheme.replace('\\{','{').replace('\\}','}');
-        dump('xp '+Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService).isExposedProtocol(finalurl.split(':')[0])+"\n");
         switch(context.target)
         {
             case "tab":

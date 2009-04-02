@@ -41,8 +41,6 @@ function listEventHandler(event)    {
     if (serviceID==-1)  { return; }
     var linkTarget="default";
     if (event.type=='command')  {
-        // dump([event.type,event.target.value,document.popupNode.parentNode.value,''].join("\n"));
-        // serviceId=document.popupNode.parentNode.value;
         linkTarget=event.target.value;
     } else {
         if (event.shiftKey) {

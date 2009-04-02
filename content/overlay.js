@@ -59,8 +59,6 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
         var regtype = sqlServices.getUTF8String(1);
         try { var subtypePairs = sqlServices.getUTF8String(2).split(","); }
         catch (e) { var subtypePairs = []; }
-        // dump ([label,regtype,subtypePairs,"\n"].join(' '));
-        // newVisibleData.push([label, true, false, -1]);
         if(!newRegtypes[regtype])   {
             newRegtypes[regtype] = {
                 label: label,
@@ -68,15 +66,11 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
             };
         }
         for (var i=0;i<subtypePairs.length;i++)  {
-            // dump(subtypePairs[i]+"\n");
             var subtypePairsA = subtypePairs[i].split(':');
             var subtypeLabel = subtypePairsA[0];
             var subtypeType = subtypePairsA[1];
-            // dump (["subtypeLabel",subtypeLabel,"subtypeType",subtypeType].join('\t')+"\n");
-            // newVisibleData.push([subtypeLabel, true, false, -1]);
             if(!newRegtypes[regtype]["subtypes"][subtypeType])  {
                 newRegtypes[regtype]["subtypes"][subtypeType] = subtypeLabel;
-                // dump("newRegtypes[regtype]['subtypes'][subtypeType]" + newRegtypes[regtype]["subtypes"][subtypeType] + "\n");
             }
         }
     }
@@ -109,7 +103,6 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
   setStatusBarIcon: function()   {
     document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/status_bw.png");
     for (regtype in this.regtypes)    {
-        dump(regtype + this.IDSDMANAGER.getDiscoveredServicesCount(regtype,null) + "\n");
         if (this.IDSDMANAGER.getDiscoveredServicesCount(regtype,null)>0)  {
             document.getElementById('bonjourStatusIcon').setAttribute("image","chrome://bonjourfoxy/content/status_color.png");
             return;
