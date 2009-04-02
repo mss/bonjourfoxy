@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="DSDBROWSE"
+	Name="dsdbrowse"
 	ProjectGUID="{1B80E9B7-97C4-49C1-9C23-36237DC9A85B}"
 	RootNamespace="BFServiceResolve"
 	Keyword="Win32Proj"
