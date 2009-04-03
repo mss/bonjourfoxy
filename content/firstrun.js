@@ -68,7 +68,7 @@ END;                                                    \
 INSERT INTO Services (regtype, scheme, label)           \
 VALUES (                                                \
     "_http._tcp.",                                      \
-    "http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}/${txtvalue:path}",  \
+    "http://${iftxtvalue:u:${txtvalue:u}}${iftxtvalue:u:${iftxtvalue:p::${txtvalue:p}}}${iftxtvalue:u:@}${srv:hostname}:${srv:port}${ifnxtcharsne:/:/}${txtvalue:path}",    \
     "Websites"                                          \
     );                                                  \
     ','                                                 \

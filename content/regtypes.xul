@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <!DOCTYPE dialog SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd">
-<dialog id="editRegtype" title="&bonjourfoxyEditRegtype;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" buttons="accept,cancel" ondialogaccept="onAccept()">
+<dialog id="editRegtype" title="&bonjourfoxyEditRegtype;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" buttons="accept,cancel" ondialogaccept="onAccept()" onload="validateInput()">
 <script>
 <![CDATA[
 
@@ -19,9 +19,12 @@ var serviceID = window.arguments[0];
 function addServiceSubtypeItem(id,label,subtype)   {
     var newLabelLabel = document.createElement('label');
     newLabelLabel.setAttribute('value', label);
+    newLabelLabel.setAttribute('flex',1);
     var newLabelSubtype = document.createElement('label');
     newLabelSubtype.setAttribute('value', subtype);
+    newLabelSubtype.setAttribute('flex', 1);
     var newListItem = document.createElement('listitem');
+    newListItem.setAttribute('flex',1);
     newListItem.appendChild(newLabelLabel);
     newListItem.appendChild(newLabelSubtype);
     newListItem.setAttribute('value',id);
@@ -82,7 +85,7 @@ function subtypesCommandHandler(event)  {
         }
     } else {
         var params = {in:{label: label, subtype: subtype}, out:null};
-        window.openDialog('chrome://bonjourfoxy/content/subtypes.xul','','chrome, dialog, modal',params).focus();
+        window.openDialog('chrome://bonjourfoxy/content/subtypes.xul','','chrome, dialog, modal, resizable=no,',params).focus();
         if (params.out) {
             if (item)   {
                 item.childNodes[0].value = params.out.label;
@@ -95,6 +98,38 @@ function subtypesCommandHandler(event)  {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                 .getService(Components.interfaces.nsIPrefService);
     prefs = prefs.getBranch("extensions.bonjourfoxy.");
+}
+
+
+function validateInput()    {
+    var regtype = document.getElementById('tbRegistrationType').value;
+    var regtypeimg = document.getElementById('imgRegistrationType');
+    var label = document.getElementById('tbLabel').value;
+    var labelimg = document.getElementById('imgLabel');
+    var scheme = document.getElementById('tbScheme').value;
+    var schemeimg = document.getElementById('imgScheme');
+    var dialog = document.getElementById("editRegtype");
+    var cross = "chrome://bonjourfoxy/content/cross.png";
+    var tick = "chrome://bonjourfoxy/content/tick.png";
+    dialog.setAttribute('buttondisabledaccept',false);
+    if (label.match(/.+/))  {
+        labelimg.setAttribute("src",tick);
+    } else {
+        labelimg.setAttribute("src",cross);
+        dialog.setAttribute('buttondisabledaccept', true);
+    }        
+    if (regtype.match(/^(_[a-zA-Z0-9\-]{1,14}\.)_(ud|tc)p\.$/))    {
+        regtypeimg.setAttribute("src",tick);
+    } else {
+        regtypeimg.setAttribute("src",cross);
+        dialog.setAttribute('buttondisabledaccept',true);
+    }
+    if (scheme.match(/^[a-zA-Z0-9]+:.+$/))   {
+        schemeimg.setAttribute("src",tick);
+    } else {
+        schemeimg.setAttribute("src",cross);
+        dialog.setAttribute('buttondisabledaccept',true);
+    }
 }
 
 function onAccept() {
@@ -219,29 +254,32 @@ VALUES (?1, ?2, ?3);               ");
 </script>
 <label style="font-weight: bold; font-size: 1.1em;" value="&bonjourfoxyEditRegtype;"/>
 <hbox align="center">
-<label style="width: 11em;" value="&bonjourfoxyRegistrationType;"/>
-<textbox flex="1" id="tbRegistrationType" />
+<label style="width: 11em;" value="&bonjourfoxyServiceHandlerLabel.label;"/>
+<textbox flex="1" id="tbLabel" oninput="validateInput()" />
+<image id="imgLabel" src="chrome://bonjourfoxy/content/cross.png" />
 </hbox>
 <hbox align="center">
-<label style="width: 11em;" value="&bonjourfoxyServiceHandlerLabel.label;"/>
-<textbox flex="1" id="tbLabel" />
+<label style="width: 11em;" value="&bonjourfoxyRegistrationType;"/>
+<textbox flex="1" id="tbRegistrationType" oninput="validateInput()" />
+<image id="imgRegistrationType" src="chrome://bonjourfoxy/content/cross.png" />
 </hbox>
 <hbox align="center">
 <label style="width: 11em;" value="&bonjourfoxyServiceScheme;"/>
-<textbox flex="1" id="tbScheme" />
+<textbox flex="1" id="tbScheme" oninput="validateInput()" />
+<image id="imgScheme" src="chrome://bonjourfoxy/content/cross.png" />
 </hbox>
 <hbox>
 <label style="width: 11em;" value="&bonjourfoxyRegistrationSubtypes;"/>
-<groupbox class="inset">
+<groupbox class="inset" flex="1">
 <listbox id="lbSubtypes" flex="1" rows="4">
     <listcols>
 	<listcol flex="1" />
-	<splitter class="tree-splitter" />
+	<splitter class="tree-splitter" flex="1" />
 	<listcol flex="1" />
     </listcols>
     <listhead>
-	<listheader label="&bonjourfoxyServiceHandlerLabel.label;" />
-	<listheader label="&bonjourfoxyRegistrationSubtype;" />
+	<listheader label="&bonjourfoxyServiceHandlerLabel.label;" flex="1" />
+	<listheader label="&bonjourfoxyRegistrationSubtype;" flex="1" />
     </listhead>
 </listbox>
  <hbox>

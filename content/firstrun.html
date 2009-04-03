@@ -58,9 +58,31 @@ ul,p  {
     color: #c00;
 }
 </style>
+
 <link rel="stylesheet" type="text/css" href="chrome://bonjourfoxy/skin/overlay.css" />
+
+<script type="text/javascript">
+
+function localise() {
+    var platform = navigator.platform;
+    if (platform.match(/Mac/))    {
+        document.getElementById('toolbarImageWinUnix').style.display="none";
+    } else {
+        document.getElementById('toolbarImageMac').style.display="none";
+    }
+    if (platform.match(/Win/))  {
+        document.getElementById('prefUnixMac').style.display="none";
+        document.getElementById('prefUnixMacH').style.display="none";
+    } else {
+        document.getElementById('prefWin').style.display="none";
+        document.getElementById('prefWinH').style.display="none";
+    }
+}
+
+</script>
+
 </head>
-<body>
+<body onload="localise()">
 <h1>BonjourFoxy <span class='beta'>Beta</span> 0.4</h2>
 <div class='note'>
 <h3>Status Bar Icon</h3>
@@ -73,7 +95,7 @@ ul,p  {
 <div class='note'>
 <h3>Toolbar Button</h3>
 <ul>
-    <li style='margin-left: -20px; list-style: none;'><div style='background: url("chrome://bonjourfoxy/skin/toolbar-button.png"); clip: rect( 0px 40px 16px 24px); height: 22px; width: 36px; float: left;'/></div>&nbsp;Display or hide sidebar</li>
+    <li style='margin-left: -20px; list-style: none;'><div id="toolbarImageMac" style='background: url("chrome://bonjourfoxy/skin/toolbar-button.png"); clip: rect( 0px 40px 16px 24px); height: 22px; width: 36px; float: left;'/></div><div id="toolbarImageWinUnix" style='background: url("chrome://bonjourfoxy/skin/toolbar-button.png"); clip: rect( 0px 40px 16px 24px); height: 20px; width: 24px; float: left;'/></div>&nbsp;Display or hide sidebar</li>
     <li class='note'>to the right of 'Home' or far-right when first installed</li>
 </ul>
 </div>
@@ -87,13 +109,13 @@ ul,p  {
 </ul>
 </div>
 <div class='note'>
-<h3>Extension Preferences</h3>
+<h3>Extension <span id="prefUnixMacH">Preferences</span><span id="prefWinH">Options</span></h3>
 <ul>
     <li>Turn on or off service discovery notifications</li>
     <li>Turn on or off status bar icon</li>
     <li>Set default link target - current page, new tab or new window</li>
     <li>Configure service handlers</li>
-    <li class='note'>via Tools &rarr; Add-ons &rarr; BonjourFoxy &rarr; Preferences</li>
+    <li class='note'>via Tools &rarr; Add-ons &rarr; BonjourFoxy &rarr; <span id="prefUnixMac">Preferences</span><span id="prefWin">Options</span></li>
 </ul>
 </div>
 <div class='note'>

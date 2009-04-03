@@ -16,3 +16,7 @@ tree.sidebar-placesTree treechildren::-moz-tree-separator {
 #serviceList treechildren::-moz-tree-row(selected,focus) {  
   background-image: url("chrome://browser/skin/places/selected-focused-gradient.png");
 }
+
+#serviceList treechildren::-moz-tree-image(leaf) {  
+    list-style-image: url("chrome://bonjourfoxy/content/status_color.png");
+}

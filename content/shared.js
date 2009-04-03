@@ -70,6 +70,35 @@ function checkResolver(context) {
             }
             scheme=scheme.replace(strSearch,strReplace);
         }
+        
+        re = new RegExp(/(\${(ifnxtcharseq:.+:.*|ifnxtcharsne:.+:.*)})/gi);
+        while(scheme.match(re))    {
+            var m = re.exec(scheme);
+            var strSearch = m[0];
+            var strReplace = "";
+            var endReplaceType = m[2].indexOf(':');
+            var endReplaceKey = m[2].indexOf(':',endReplaceType+1);
+            strReplace = (endReplaceKey==-1) ? strReplace : m[2].substring(endReplaceKey+1,m[2].length);
+            endReplaceKey = (endReplaceKey==-1) ? m[2].length : endReplaceKey;
+            var replaceType = m[2].split(":")[0];
+            var replaceKey = m[2].split(":")[1];
+            var endStrSearch = scheme.indexOf(strSearch)+strSearch.length;
+            switch(replaceType) {
+                case "ifnxtcharseq":
+                    if (scheme.substring(endStrSearch,scheme.length).indexOf(replaceKey)!=0)    {
+                        strReplace="";
+                    }
+                break;
+                break;
+                case "ifnxtcharsne":
+                    if (scheme.substring(endStrSearch,scheme.length).indexOf(replaceKey)==0)    {
+                        strReplace="";
+                    }
+                break;
+            }
+            scheme=scheme.replace(strSearch,strReplace);
+        }
+        
         var finalurl=scheme.replace('\\{','{').replace('\\}','}');
         switch(context.target)
         {

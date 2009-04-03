@@ -50,7 +50,7 @@ function serviceHandler(event)  {
         case "edit":
             regtypeParam = lbServices.selectedItem.value;
         case "new":
-            window.openDialog('chrome://bonjourfoxy/content/regtypes.xul','','chrome, dialog, modal',regtypeParam);
+            window.openDialog('chrome://bonjourfoxy/content/regtypes.xul','','chrome, dialog, modal, resizable=no,',regtypeParam);
         break;
         default:
             window.alert(mode + '?');
