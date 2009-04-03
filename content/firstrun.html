@@ -73,9 +73,11 @@ function localise() {
     if (platform.match(/Win/))  {
         document.getElementById('prefUnixMac').style.display="none";
         document.getElementById('prefUnixMacH').style.display="none";
+        document.getElementById('prefUnixMacM').style.display="none";
     } else {
         document.getElementById('prefWin').style.display="none";
         document.getElementById('prefWinH').style.display="none";
+        document.getElementById('prefWinM').style.display="none";
     }
 }
 
@@ -105,6 +107,7 @@ function localise() {
     <li>Browser - browse all Bonjour Services</li>
     <li>Sidebar - display or hide sidebar</li>
     <li>Services Discovered</li>
+    <li><span id="prefUnixMacM">Preferences</span><span id="prefWinM">Options</span> - see below</li>
     <li class='note'>named BonjourFoxy, just before Tools</li>
 </ul>
 </div>
@@ -115,7 +118,7 @@ function localise() {
     <li>Turn on or off status bar icon</li>
     <li>Set default link target - current page, new tab or new window</li>
     <li>Configure service handlers</li>
-    <li class='note'>via Tools &rarr; Add-ons &rarr; BonjourFoxy &rarr; <span id="prefUnixMac">Preferences</span><span id="prefWin">Options</span></li>
+    <li class='note'>found via BonjourFoxy menu &rarr; <span id="prefUnixMac">Preferences</span><span id="prefWin">Options</span></li>
 </ul>
 </div>
 <div class='note'>
