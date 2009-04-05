@@ -414,8 +414,8 @@ GROUP BY                                                                    \
             var lastErrorcode = Components.classes["@mozilla.org/variant;1"].createInstance(Components.interfaces.nsIWritableVariant);
             lastErrorcode.setFromVariant(this.ResolverInstances[id].lastErrorCode);
             returnPayload.appendElement(lastErrorcode, 0);
-            this.ResolverInstances[id]=null;
             this.log([invocationTxt,": instance fatal state -",this.ResolverInstances[id].obj.status].join(''))
+            this.ResolverInstances[id]=null;
     }
     returnArray.appendElement(returnCode,0);
     returnArray.appendElement(returnPayload,0);
