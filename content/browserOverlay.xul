@@ -11,7 +11,7 @@
   </stringbundleset>
 
   <menubar id="main-menubar">
-    <menu label="&bonjourfoxyMenu.label;" insertbefore="tools-menu" onpopupshowing="bonjourfoxy.menuAddServices();">
+    <menu label="&bonjourfoxyMenu.label;" insertbefore="tools-menu" onpopupshowing="bonjourfoxy.menuAddServices(event);">
     <menupopup id="bonjourMenuPopup">
         <menuitem id="key_openEmptySidebar" label="&bonjourfoxyMenuSidebar.label;" observes="viewBonjourServices"
               oncommand="bonjourfoxy.onMenuItemCommand(event);"/>

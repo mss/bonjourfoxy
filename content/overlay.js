@@ -138,8 +138,9 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
               "Preferences", features, paneID);
     }
   },
-  menuAddServices: function()   {
+  menuAddServices: function(event)   {
     var menu = document.getElementById("bonjourMenuPopup");
+    if (menu!=event.explicitOriginalTarget) return true;
     while (menu.childNodes.length>4)   {
         menu.removeChild(menu.childNodes[menu.childNodes.length-1]);
     }
