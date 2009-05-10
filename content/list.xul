@@ -281,12 +281,15 @@ GROUP BY Services.regtype, Services.scheme, Services.label;             ");
         newVisibleData.push([container, true, false, -1]);
     }
 
+    var oldRowCount=treeView.rowCount;
+    var newRowCount=newVisibleData.length;
     treeView.childData=newChildData;
     treeView.visibleData=newVisibleData;
 
     var tree = document.getElementById('serviceList');
     var boxobject = tree.boxObject;
     boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+    boxobject.rowCountChanged(0,newRowCount-oldRowCount);
     boxobject.invalidate();
     
     if (startup)    {
