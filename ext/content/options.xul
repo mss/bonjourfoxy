@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE prefwindow SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd"> 
+<prefwindow id="bonjourfoxyPreferences"
+     title="(Overriden)"
+     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+     xmlns:html="http://www.w3.org/1999/xhtml"
+     buttons="accept"
+     width="300"
+     height="160">
+<script>
+<![CDATA[
+
+function localise() {
+    var strings = document.getElementById("string-bundle");
+    var title = strings.getString('title') + " ";
+    if (/Win/.test(navigator.platform)) {
+        title += strings.getString('winPrefLabel');
+    } else {
+        title += strings.getString('unixPrefLabel');
+    }
+    document.getElementById('bonjourfoxy-prefpane').setAttribute('label',title);
+    document.getElementById('bonjourfoxyPreferences').setAttribute('title',title);
+    document.title = title;
+}
+
+window.addEventListener("load", localise, false);
+
+]]>
+</script>
+<stringbundleset id="stringbundleset">
+  <stringbundle id="string-bundle" src="chrome://bonjourfoxy/locale/bonjourfoxy.properties"/>
+</stringbundleset>
+<prefpane id="bonjourfoxy-prefpane" label="(Overridden)">
+  <preferences>
+    <preference id="pref_alerts" name="extensions.bonjourfoxy.alerts" instantApply="true" type="bool"/>
+    <preference id="pref_statusbaricon" name="extensions.bonjourfoxy.statusbaricon" instantApply="true" type="bool"/>
+    <preference id="pref_target" name="extensions.bonjourfoxy.target" instantApply="true" type="string"/>
+  </preferences>
+ <caption style="font-weight: bold; font-size: 1.1em;" value="&bonjourfoxyInterfaceSettings.label;"/>
+ <vbox flex="1">
+  <hbox>
+      <label control="alerts" value="&bonjourfoxyAlerts.label;"/>
+      <spacer flex="1"/>
+      <checkbox preference="pref_alerts" id="alerts"/>
+  </hbox>
+  <hbox>
+      <label control="statusbaricon" value="&bonjourfoxyStatusBarIcon.label;"/>
+      <spacer flex="1"/>
+      <checkbox preference="pref_statusbaricon" id="statusbaricon"/>
+  </hbox>
+  <hbox flex="1">
+      <label control="target" value="&bonjourfoxyLinkTarget.label;"/>
+      <spacer flex="1"/>
+      <menulist preference="pref_target" id="target">
+        <menupopup>
+            <menuitem label="&bonjourfoxyLinkTarget.CurrentPage;" value="current"/>
+            <menuitem label="&bonjourfoxyLinkTarget.NewTab;" value="tab"/>
+            <menuitem label="&bonjourfoxyLinkTarget.NewWindow;" value="window" />
+        </menupopup>
+      </menulist>
+  </hbox>
+  <hbox><spacer flex="1"/><description value="&bonjourfoxySettingsNote;"/><spacer flex="1" /></hbox>
+ </vbox>
+</prefpane> 
+</prefwindow>

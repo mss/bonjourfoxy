@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://bonjourfoxy/locale/bonjourfoxy.dtd">
+<window title="BonjourFoxy Browser" id="bonjourfoxyBrowser" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" onload="ServiceBrowser.startup()">
+<script>
+<![CDATA[
+
+var ServiceBrowser = {
+    ServiceBrowsers: Object(),
+    addServiceBrowser: function (regtype, callback) {
+        this.ServiceBrowsers[regtype] = Components.classes["@bonjourfoxy.net/bfbrowse;1"]
+                                                  .createInstance(Components.interfaces.BFBrowse);
+        this.ServiceBrowsers[regtype] = Components.classes["@bonjourfoxy.net/bfbrowse;1"]
+                                                  .createInstance(Components.interfaces.BFBrowse);
+        this.ServiceBrowsers[regtype].callback = callback;
+        this.ServiceBrowsers[regtype].interfaceIndex = 0;
+        this.ServiceBrowsers[regtype].registrationType = regtype;
+        this.ServiceBrowsers[regtype].browse();
+    },
+    browseCallbackUpdateList: function(aContext) {
+        return function(aError, aAdd, aInterfaceIndex, aServiceName, aRegistrationType, aRegistrationDomain) {
+            var context = aContext;
+            if (!aError)    {
+                var newListItem = document.createElement('listitem');
+                var newLabelInterface = document.createElement('label');
+                var newLabelDomain = document.createElement('label');
+                var newLabelRegistrationType = document.createElement('label');
+                var newLabelServiceName = document.createElement('label');
+                var newLabelRegistrationSubTypes = document.createElement('label');
+                newLabelInterface.setAttribute('value', aInterfaceIndex);
+                newLabelDomain.setAttribute('value', aRegistrationDomain);
+                newLabelRegistrationType.setAttribute('value', aRegistrationType);
+                newLabelServiceName.setAttribute('value', aServiceName);
+                newListItem.appendChild(newLabelInterface);
+                newListItem.appendChild(newLabelServiceName);
+                newListItem.appendChild(newLabelRegistrationType);
+                newListItem.appendChild(newLabelDomain);
+                newListItem.setUserData("interfaceIndex", aInterfaceIndex, null);
+                newListItem.setUserData("serviceName", aServiceName, null);
+                newListItem.setUserData("registrationType", aRegistrationType, null);
+                newListItem.setUserData("registrationDomain", aRegistrationDomain, null);
+                document.getElementById('lbServices').appendChild(newListItem);
+            }
+        }
+    },
+    browseCallbackAddBrowser: function(aContext) {
+        return function(aError, aAdd, aInterfaceIndex, aServiceName, aRegistrationType, aRegistrationDomain) {
+            var context = aContext;
+            if (!aError)    {
+                context.addServiceBrowser(aServiceName + '.' + aRegistrationType.split(".")[0],
+                                          context.browseCallbackUpdateList(context));
+            }
+        }
+    },
+    startup: function() {
+        this.addServiceBrowser("_services._dns-sd._udp.", this.browseCallbackAddBrowser(this));
+    },
+    resolveCallback: function(aServiceName, aRegistrationType, aRegistrationDomain) {
+        return function (aError, aInterfaceIndex, aHostname, aPort, aTxtKey, aTxtValue) {
+            var serviceName = aServiceName;
+            var registrationType = aRegistrationType;
+            var registrationDomain = aRegistrationDomain;
+            if (!aError) {
+                document.getElementById('tbInterfaceIndex').setAttribute('value', aInterfaceIndex);
+                document.getElementById('tbServiceName').setAttribute('value', serviceName);
+                document.getElementById('tbRegistrationType').setAttribute('value', registrationType);
+                document.getElementById('tbRegistrationDomain').setAttribute('value', registrationDomain);
+                document.getElementById('tbHost').setAttribute('value', aHostname);
+                document.getElementById('tbPort').setAttribute('value', aPort);
+                var txtRecords = "";
+                if (aTxtKey != "")  {
+                    txtRecords = aTxtKey;
+                    if (aTxtValue != "") {
+                        txtRecords = aTxtKey + "=" + aTxtValue;
+                    }
+                }
+                document.getElementById('tbTextRecords').setAttribute('value', txtRecords );
+                document.getElementById('gpServiceInfo').setAttribute('style','');
+            } else {
+                var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                            .getService(Components.interfaces.nsIPromptService);
+                prompts.alert(window, "Error", ["Failed to resolve",serviceName,"on network interface",aInterfaceIndex].join(" "));
+            }
+        }
+    },
+    ServiceResolver: null,
+    resolveService: function(event) {
+        var listitem = event.explicitOriginalTarget;
+        var interfaceIndex = listitem.getUserData("interfaceIndex");
+        var serviceName = listitem.getUserData("serviceName");
+        var registrationDomain = listitem.getUserData("registrationDomain");
+        var registrationType = listitem.getUserData("registrationType");
+        this.ServiceResolver = null;
+        this.ServiceResolver = Components.classes["@bonjourfoxy.net/bfresolve;1"]
+                                         .createInstance(Components.interfaces.BFResolve);
+        this.ServiceResolver.interfaceIndex = interfaceIndex;
+        this.ServiceResolver.registrationType = registrationType;
+        this.ServiceResolver.registrationDomain = registrationDomain;
+        this.ServiceResolver.serviceName = serviceName;
+        this.ServiceResolver.callback = this.resolveCallback(serviceName,
+                                                             registrationType,
+                                                             registrationDomain);
+        this.ServiceResolver.resolve();
+    }
+};
+
+
+]]>
+</script>
+<vbox flex="1" style="padding: 0; margin: 0;">
+    <listbox id="lbServices" flex="1" style="padding: 0; margin: 0;" onselect="ServiceBrowser.resolveService(event);">
+      <listcols flex="1">
+        <listcol flex="1"/>
+        <listcol flex="1"/>
+        <listcol flex="1"/>
+        <listcol flex="1"/>
+      </listcols>
+      <listhead flex="1">
+        <listheader label="&bonjourfoxyInterfaceIndexName;"/>
+        <listheader label="&bonjourfoxyServiceName;"/>
+        <listheader label="&bonjourfoxyRegistrationType;"/>
+        <listheader label="&bonjourfoxyRegistrationDomain;"/>
+      </listhead>
+    </listbox>
+    <vbox id="gpServiceInfo" style="display: none;">
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyInterfaceIndexName;"/>
+    <textbox flex="1" value="Interface Index" id="tbInterfaceIndex" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyServiceName;"/>
+    <textbox flex="1" value="Service Name" id="tbServiceName" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyRegistrationType;"/>
+    <textbox flex="1" value="Registration Type" id="tbRegistrationType" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyRegistrationDomain;"/>
+    <textbox flex="1" value="Registration Domain" id="tbRegistrationDomain" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyServiceHost;"/>
+    <textbox flex="1" value="Host" id="tbHost" readonly="true" />
+    </hbox>
+    <hbox align="center">
+    <label style="width: 11em;" value="&bonjourfoxyServicePort;"/>
+    <textbox flex="1" value="Port" id="tbPort" readonly="true" />
+    </hbox>
+    <hbox>
+    <label style="width: 11em; padding-top: 5px;" value="&bonjourfoxyTXTRecord;"/>
+    <textbox flex="1" multiline="true" id="tbTextRecords" readonly="true" rows="7" />
+    </hbox>
+    </vbox>
+</vbox>
+
+</window>
