@@ -1,0 +1,25 @@
+#include "nsISupports.idl"
+#include "bfenumeratecallback.idl"
+
+[scriptable, uuid(20E5D84C-6CD9-41E7-B05D-D7C73A0882FB)]
+
+interface BFEnumerate : nsISupports
+{
+    
+    // Start looking for browse/registration domains
+
+    void enumerate();
+    
+    // Callback
+    
+    attribute BFEnumerateCallback callback;
+    
+    // Look for registration or browse domains
+
+    attribute PRBool type;
+    
+    // Interface to enumerate
+    
+    attribute long interfaceIndex;
+
+};

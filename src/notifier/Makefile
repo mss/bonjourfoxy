@@ -1,6 +1,6 @@
 COMP = notifier
 
-XPT_OBJ = bf$(COMP).h
+XPT_OBJS = bf$(COMP).h
 
 ALL_OBJS = $(XPT_OBJS)
 

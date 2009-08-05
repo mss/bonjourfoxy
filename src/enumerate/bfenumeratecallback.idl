@@ -1,0 +1,11 @@
+#include "nsISupports.idl"
+
+[scriptable, function, uuid(DDCB0A51-162F-46F0-9C59-D529061B184D)]
+
+interface BFEnumerateCallback : nsISupports {
+    void callback( in long error,
+                   in PRBool add,
+                   in long interfaceIndex,
+                   in PRBool registrationDomainType, 
+                   in AString registrationDomain);
+};

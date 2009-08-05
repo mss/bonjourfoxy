@@ -1,0 +1,12 @@
+#include "nsISupports.idl"
+
+[scriptable, function, uuid(3EC0D8FA-0C42-403C-8A35-C161D1F1541E)]
+
+interface BFBrowseCallback : nsISupports {
+    void callback( in long error,
+                   in PRBool add,
+                   in long interfaceIndex,
+                   in AString serviceName,
+                   in AString registrationType, 
+                   in AString registrationDomain);
+};

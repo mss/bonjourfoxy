@@ -1,0 +1,28 @@
+#include "nsISupports.idl"
+#include "bfbrowsecallback.idl"
+
+[scriptable, uuid(B165F500-4972-47A9-80C8-65EDB6DFCC59)]
+
+interface BFBrowse : nsISupports
+{
+    // Start browsing for services
+    
+    void browse();
+
+    // Add callback
+    
+    attribute BFBrowseCallback callback;
+
+    // Interface to search on
+    
+    attribute long interfaceIndex;
+    
+    // Registration type to look for
+    
+    attribute AString registrationType;
+    
+    // Domain to look for services in
+    
+    attribute AString registrationDomain;
+    
+};

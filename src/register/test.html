@@ -1,26 +1,34 @@
 <html>
 <head>
 <script type="text/javascript">
+var obj;
+var tcbf=function(){
+    var msg="Arguments:\n";
+    for (i=0; i<arguments.length;i++) {
+        msg+=arguments[i]+"\n";
+    }
+    alert (msg);
+};
+
 function go()   {
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-var obj=Components.classes["@andrew.tj.id.au/dsdregister;1"].getService(); // createInstance();
-obj.QueryInterface(Components.interfaces.IDSDREGISTER);
+obj=Components.classes["@bonjourfoxy.net/bfregister;1"].createInstance(Components.interfaces.BFRegister); // createInstance();
+//obj.QueryInterface(Components.interfaces.IDSDREGISTER);
 obj.interfaceIndex=0;
+obj.callback=tcbf;
 obj.autorename = true;
-// obj.name = "NULL TEST";
-obj.name = null;
+obj.serviceName = "Twitter";
 obj.registrationType = "_http._tcp";
-// obj.registrationDomain = "local.";
-obj.registrationDomain = null;
-// obj.targetHost = "twitter.com";
-obj.targetHost = null;
+obj.registrationDomain = "local.";
+// obj.registrationDomain = null;
+obj.targetHost = "twitter.com";
+// obj.targetHost = null;
 obj.targetPort = "80";
-// obj.txtRecordKey = "path";
-obj.txtRecordKey = null;
-// obj.txtRecordValue = "/AndrewTJ";
-obj.txtRecordValue = null;
-document.write("Status: " + obj.status + "<br/>");
-obj.start();
+obj.txtRecordKey = "path";
+// obj.txtRecordKey = null;
+obj.txtRecordValue = "/AndrewTJ";
+// obj.txtRecordValue = null;
+obj.register();
 // document.write("Status: " + obj.status + "<br/>");
 // obj.stop();
 // document.write("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode + "<br/>");

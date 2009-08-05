@@ -1,0 +1,32 @@
+#include "nsISupports.idl"
+#include "bfresolvecallback.idl"
+
+[scriptable, uuid(1FCC2895-535A-4B14-8CB3-62D8B7BAA678)]
+
+interface BFResolve : nsISupports
+{
+    // Start resolving service name
+    
+    void resolve();
+        
+    // Add callback
+    
+    attribute BFResolveCallback callback;
+
+    // Interface to search on
+    
+    attribute long interfaceIndex;
+
+    // Service name to look for
+    
+    attribute AString serviceName;
+
+    // Registration type to look for
+    
+    attribute AString registrationType;
+    
+    // Domain to look for service in
+    
+    attribute AString registrationDomain;
+    
+};

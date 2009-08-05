@@ -1,0 +1,12 @@
+#include "nsISupports.idl"
+
+[scriptable, function, uuid(D30B69B4-D734-425E-B476-C08A011DE5D8)]
+
+interface BFRegisterCallback : nsISupports {
+    void callback( in long error,
+                   in long interfaceIndex,
+                   in PRBool add, 
+                   in AString serviceName,
+                   in AString registrationType,
+                   in AString registrationDomain);
+};

@@ -1,8 +1,48 @@
 <html>
 <head>
 <script type="text/javascript">
+
+var obj;
+var tcbf=function(error, add, ifIndex, sname, rtype, rdomain){
+    /*
+    var msg="Arguments:\n";
+    for (i=0; i<arguments.length;i++) {
+        msg+=arguments[i]+"\n";
+    }
+    */
+    if (!error) {
+        if (!thing[sname]) {
+            thing[sname]=0;
+            }
+        selbox = document.getElementById("selbox");
+        if (add) {
+            thing[sname]++;
+            if (thing[sname]==1) {
+                opt = document.createElement("option");
+                opt.innerHTML = sname;
+                selbox.appendChild(opt);
+                }
+            } else {
+            thing[sname]--;
+            if (thing[sname]==0) {
+                for (child in selbox.childNodes) {
+                    // alert(selbox.childNodes[child].innerHTML);
+                    if (selbox.childNodes[child].innerHTML == sname)    {
+                        selbox.removeChild(selbox.childNodes[child]);
+                        selbox.style.display = 'none';
+                        selbox.style.display = '';
+                    }
+                }
+            }
+        }
+    }
+};
+
+var thing = Object();
+
 function go()   {
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+/*
 var obj=Components.classes["@andrew.tj.id.au/dsdbrowse;1"].createInstance(); //.getService(); 
 obj.QueryInterface(Components.interfaces.IDSDBROWSE);
 obj.interfaceIndex=0;
@@ -15,10 +55,19 @@ document.write("Status: " + obj.status + "<br/>");
 // obj.stop();
 document.write("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode + "<br/>");
 // obj=null;
+*/
+obj=Components.classes["@bonjourfoxy.net/bfbrowse;1"].createInstance(Components.interfaces.BFBrowse);
+obj.callback=tcbf;
+obj.interfaceIndex=0;
+obj.registrationType="_http._tcp";
+obj.registrationDomain="local.";
+obj.browse();
 }
 </script>
 </head>
 <body onload='go()'>
+<select id="selbox" size="20">
+</select>
 <textarea id='foo'></textarea>
 <input type='button' onclick='alert("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode);'>
 </html>

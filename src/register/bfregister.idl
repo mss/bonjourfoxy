@@ -1,0 +1,50 @@
+#include "nsISupports.idl"
+#include "bfregistercallback.idl"
+
+[scriptable, uuid(7A4A1E8F-0387-48C4-BCD1-B89A2B07AF85)]
+
+interface BFRegister : nsISupports
+{
+    // Register service
+    
+    void register();
+    
+    attribute BFRegisterCallback callback;
+    
+    // Interface to register on 
+    
+    attribute long interfaceIndex;
+
+    // Auto rename in case of naming conflict
+    
+    attribute PRBool autorename;
+    
+    // Service name
+
+    attribute AString serviceName;
+    
+    // Service registration type
+
+    attribute AString registrationType;
+
+    // Service registration domain
+    
+    attribute AString registrationDomain;
+    
+    // Target host
+
+    attribute AString targetHost;
+    
+    // Port
+    
+    attribute long targetPort;
+
+    // Text record key
+    
+    attribute AString txtRecordKey;
+
+    // Text record value
+    
+    attribute AString txtRecordValue;
+        
+};

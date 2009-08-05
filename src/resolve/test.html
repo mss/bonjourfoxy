@@ -1,8 +1,17 @@
 <html>
 <head>
 <script type="text/javascript">
+var tcbf=function(){
+    var msg="Arguments:\n";
+    for (i=0; i<arguments.length;i++) {
+        msg+=arguments[i]+"\n";
+    }
+    alert (msg);
+};
+
 function go()   {
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+/*
 var obj=Components.classes["@andrew.tj.id.au/dsdresolve;1"].getService(); // createInstance();
 obj.QueryInterface(Components.interfaces.IDSDRESOLVE);
 obj.interfaceIndex=0;
@@ -15,6 +24,14 @@ document.write("Status: " + obj.status + "<br/>");
 // obj.stop();
 // document.write("Status: " + obj.status + "\nLast Domain:" + obj.lastDomain + "\nLast Error Code: " + obj.lastErrorcode + "<br/>");
 // obj=null;
+*/
+var obj=Components.classes["@bonjourfoxy.net/bfresolve;1"].createInstance(Components.interfaces.BFResolve);
+obj.callback=tcbf;
+obj.interfaceIndex=0;
+obj.registrationType="_http._tcp";
+obj.registrationDomain="local.";
+obj.serviceName="test";
+obj.resolve();
 }
 </script>
 </head>

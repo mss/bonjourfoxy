@@ -1,4 +1,4 @@
-SUBDIRS = manager browse enumerate notifier register resolve
+SUBDIRS = browse enumerate register resolve notifier 
 
 .PHONY: $(SUBDIRS) clean
 
